@@ -1,11 +1,11 @@
-# Sportsclub
+# BookingApp
 
 A pnpm + Turborepo monorepo for a sports club booking platform. It contains a Next.js frontend and a Hono API backend, deployed independently to AWS with [SST](https://sst.dev/).
 
 ## Repository structure
 
 ```
-sportsclub/
+bookingapp/
 ├── apps/
 │   ├── web/          # Next.js frontend (package name: `web`)
 │   └── api/          # Hono + tRPC backend (package name: `api`)
@@ -21,12 +21,12 @@ sportsclub/
 
 Location: `apps/web`
 
-| | |
-|---|---|
-| **Stack** | Next.js, React, Tailwind CSS, shadcn/ui |
-| **State & data** | Zustand, TanStack Query, tRPC client |
-| **Auth** | better-auth |
-| **Deploy** | SST (`sst.aws.Nextjs`) to AWS |
+|                  |                                         |
+| ---------------- | --------------------------------------- |
+| **Stack**        | Next.js, React, Tailwind CSS, shadcn/ui |
+| **State & data** | Zustand, TanStack Query, tRPC client    |
+| **Auth**         | better-auth                             |
+| **Deploy**       | SST (`sst.aws.Nextjs`) to AWS           |
 
 The frontend talks to the API over tRPC with end-to-end types imported from `apps/api/src/router`.
 
@@ -36,12 +36,12 @@ Local dev runs on port **5173**.
 
 Location: `apps/api`
 
-| | |
-|---|---|
-| **Stack** | Hono, tRPC, Drizzle ORM |
+|               |                                                        |
+| ------------- | ------------------------------------------------------ |
+| **Stack**     | Hono, tRPC, Drizzle ORM                                |
 | **Databases** | PostgreSQL (relational data), DynamoDB (via ElectroDB) |
-| **Auth** | better-auth |
-| **Deploy** | SST (Lambda + API Gateway) to AWS |
+| **Auth**      | better-auth                                            |
+| **Deploy**    | SST (Lambda + API Gateway) to AWS                      |
 
 Domain areas include organizations, offerings, schedules, bookings, customers, and blocked times.
 
@@ -117,16 +117,16 @@ See `apps/api/.env.examples` for required environment variables. Copy it to `app
 
 Each app has its own SST config and is deployed separately:
 
-| App | SST app name | Config |
-|-----|--------------|--------|
+| App   | SST app name    | Config                   |
+| ----- | --------------- | ------------------------ |
 | `web` | `sportsclub-fe` | `apps/web/sst.config.ts` |
 | `api` | `sportsclub-be` | `apps/api/sst.config.ts` |
 
 ### GitHub Actions
 
-| Workflow | Triggers on | Deploys |
-|----------|-------------|---------|
-| `deploy-web.yml` | Push to `main` under `apps/web/**` | `web` → dev |
+| Workflow         | Triggers on                        | Deploys                                  |
+| ---------------- | ---------------------------------- | ---------------------------------------- |
+| `deploy-web.yml` | Push to `main` under `apps/web/**` | `web` → dev                              |
 | `deploy-api.yml` | Push to `main` under `apps/api/**` | `api` → dev (includes DB migrate + seed) |
 
 Both workflows can also be triggered manually via **workflow_dispatch**, with a choice of **dev** or **production**.

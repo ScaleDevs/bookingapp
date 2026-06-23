@@ -4,7 +4,7 @@
 export default $config({
   app(input) {
     return {
-      name: "sportsclub-fe",
+      name: "web",
       removal: input?.stage === "production" ? "retain" : "remove",
       protect: ["production"].includes(input?.stage),
       home: "aws",

@@ -1,5 +1,5 @@
 {
-  "name": "sportsclub",
+  "name": "bookingapp",
   "private": true,
   "scripts": {
     "build": "turbo run build",
