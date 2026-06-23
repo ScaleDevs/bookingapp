@@ -1,0 +1,46 @@
+import { Geist_Mono, Manrope, Noto_Sans } from "next/font/google"
+
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
+import { TRPCProvider } from "@/components/trpc-provider"
+import { cn } from "@/lib/utils"
+
+const notoSansHeading = Noto_Sans({
+  subsets: ["latin"],
+  variable: "--font-heading",
+})
+
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-sans" })
+
+const fontMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+})
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        manrope.variable,
+        notoSansHeading.variable
+      )}
+    >
+      <body>
+        <ThemeProvider>
+          <TRPCProvider>{children}</TRPCProvider>
+          <Toaster />
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}

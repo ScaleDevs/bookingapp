@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1781594855489,
+      "tag": "0000_stale_the_liberteens",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782109911001,
+      "tag": "0001_eminent_peter_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782110026082,
+      "tag": "0002_dusty_the_liberteens",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782110049254,
+      "tag": "0003_lethal_mentor",
+      "breakpoints": true
+    }
+  ]
+}

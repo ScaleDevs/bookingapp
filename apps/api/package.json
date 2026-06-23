@@ -1,0 +1,44 @@
+{
+  "name": "api",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "deploy:production": "sst deploy --stage production",
+    "deploy:dev": "sst deploy --stage dev",
+    "deploy:local": "sst deploy --stage local",
+    "remove:production": "sst remove --stage production",
+    "remove:dev": "sst remove --stage dev",
+    "remove:local": "sst remove --stage local",
+    "build": "esbuild --bundle --outfile=./dist/index.js --platform=node --target=node20 ./src/index.ts",
+    "update": "aws lambda update-function-code --zip-file fileb://lambda.zip --function-name hello",
+    "zip": "zip -j lambda.zip dist/index.js",
+    "db:seed": "tsx src/seeds/accounts.ts",
+    "db:seed:offerings": "tsx src/seeds/offerings.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.160",
+    "@types/node": "^22.10.0",
+    "drizzle-kit": "^0.31.9",
+    "esbuild": "^0.21.4",
+    "npm-run-all2": "^6.2.0",
+    "tsx": "^4.21.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1019.0",
+    "@hono/node-server": "^1.19.11",
+    "@trpc/server": "^11.10.0",
+    "better-auth": "^1.4.18",
+    "decimal.js": "^10.6.0",
+    "dotenv": "^17.3.1",
+    "drizzle-orm": "^0.45.1",
+    "electrodb": "^3.7.3",
+    "hono": "^4.12.0",
+    "pg": "^8.18.0",
+    "postgres": "^3.4.8",
+    "sst": "4.5.12",
+    "valibot": "^1.4.1"
+  }
+}

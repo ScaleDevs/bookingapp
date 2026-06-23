@@ -1,0 +1,91 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: choice
+        options:
+          - dev
+          - production
+        default: dev
+
+# One deploy per stage at a time; avoid cancelling in-flight production deploys
+concurrency:
+  group: sst-${{ github.workflow }}-${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}
+  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production') }}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    defaults:
+      run:
+        working-directory: apps/api
+
+    env:
+      CI: true
+      # SST uses Pulumi; extra heap reduces provider OOMs on default runners (see sst/sst#6326)
+      NODE_OPTIONS: --max-old-space-size=6144
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        run: pnpm run db:migrate
+        env:
+          DATABASE_URL_MIGRATIONS: ${{ secrets.DATABASE_URL_MIGRATIONS }}
+
+      - name: Run database seeds
+        run: pnpm run db:seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATIONS }}
+          DYNAMO_TABLE_NAME: "DUMMY"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy with SST
+        run: pnpm run deploy:${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}
+        env:
+          ROOT_DOMAIN: ${{ vars.ROOT_DOMAIN }}
+          ACM_CERTIFICATE_ARN: ${{ secrets.ACM_CERTIFICATE_ARN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+
+      - name: Deployment summary
+        run: |
+          echo "## SST deploy finished" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Stage:** ${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Ref:** \`${{ github.ref }}\` @ \`${{ github.sha }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- View outputs in [SST Console](https://console.sst.dev) or run \`sst console\` locally." >> "$GITHUB_STEP_SUMMARY"
