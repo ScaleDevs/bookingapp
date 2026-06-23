@@ -119,8 +119,8 @@ Each app has its own SST config and is deployed separately:
 
 | App   | SST app name    | Config                   |
 | ----- | --------------- | ------------------------ |
-| `web` | `sportsclub-fe` | `apps/web/sst.config.ts` |
-| `api` | `sportsclub-be` | `apps/api/sst.config.ts` |
+| `web` | `bookingapp-fe` | `apps/web/sst.config.ts` |
+| `api` | `bookingapp-be` | `apps/api/sst.config.ts` |
 
 ### GitHub Actions
 
