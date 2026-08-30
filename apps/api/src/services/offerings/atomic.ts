@@ -1,10 +1,9 @@
 import { eq, and } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
-
 import { db } from '@db';
 import { offering } from '@db/schema';
 
 import { createLogger } from '@utils/logger';
+import { ApiError } from '@utils/errors';
 import { BaseService } from '@utils/types';
 
 function createOfferingLogger(requestId: string | null | undefined, organizationId: string) {
@@ -39,7 +38,7 @@ export async function create({ requestId, organizationId }: BaseService, input: 
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to create offering: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -95,7 +94,7 @@ export async function toggleStatus({ requestId, organizationId }: BaseService, i
             .limit(1);
 
         if (!existingOffering) {
-            throw new TRPCError({
+            throw new ApiError({
                 code: 'NOT_FOUND',
                 message: 'Offering not found',
             });
@@ -110,10 +109,10 @@ export async function toggleStatus({ requestId, organizationId }: BaseService, i
 
         return result;
     } catch (error) {
-        if (error instanceof TRPCError) {
+        if (error instanceof ApiError) {
             throw error;
         }
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to toggle offering status: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });

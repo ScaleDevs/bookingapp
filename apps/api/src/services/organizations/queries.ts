@@ -1,10 +1,9 @@
 import { eq } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
-
 import { db } from '@db';
 import { organization } from '@db/auth-schema';
 
 import { createLogger } from '@utils/logger';
+import { ApiError } from '@utils/errors';
 import { BaseService } from '@utils/types';
 
 function createOrganizationLogger(requestId: string | null | undefined, organizationId: string) {
@@ -29,7 +28,7 @@ export async function getById({ requestId, organizationId }: BaseService) {
         });
 
         if (!result) {
-            throw new TRPCError({
+            throw new ApiError({
                 code: 'NOT_FOUND',
                 message: `Organization with id ${organizationId} not found`,
             });
@@ -39,11 +38,11 @@ export async function getById({ requestId, organizationId }: BaseService) {
 
         return result;
     } catch (error) {
-        if (error instanceof TRPCError) {
+        if (error instanceof ApiError) {
             throw error;
         }
 
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to get organization: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });

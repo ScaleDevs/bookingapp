@@ -1,10 +1,9 @@
 import { eq, and, asc, desc, count } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
-
 import { db } from '@db';
 import { offering, offeringSchedule } from '@db/schema';
 
 import { createLogger } from '@utils/logger';
+import { ApiError } from '@utils/errors';
 import { BaseService } from '@utils/types';
 
 export interface OfferingScheduleListOptions {
@@ -40,7 +39,7 @@ export async function list({ requestId, organizationId }: BaseService, options: 
 
         const offeringRecord = await verifyOfferingAccess(organizationId, offeringId);
         if (!offeringRecord) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Offering not found' });
+            throw new ApiError({ code: 'NOT_FOUND', message: 'Offering not found' });
         }
 
         const conditions = [eq(offeringSchedule.offeringId, offeringId)];
@@ -90,9 +89,9 @@ export async function list({ requestId, organizationId }: BaseService, options: 
             totalPages: pageSize > 0 ? Math.ceil(total / pageSize) : 0,
         };
     } catch (error) {
-        if (error instanceof TRPCError) throw error;
+        if (error instanceof ApiError) throw error;
 
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to list offering schedules: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -116,7 +115,7 @@ export async function getById({ requestId, organizationId }: BaseService, id: st
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to get offering schedule: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });

@@ -1,115 +1,126 @@
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { requestId, type RequestIdVariables } from 'hono/request-id'
-import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { requestId, type RequestIdVariables } from 'hono/request-id';
+import { ORPCError, onError } from '@orpc/server';
+import { RPCHandler } from '@orpc/server/fetch';
+import { OpenAPIGenerator } from '@orpc/openapi';
+import { experimental_ValibotToJsonSchemaConverter } from '@orpc/valibot';
 
-import { appRouter } from './router'
-import { auth } from './utils/auth'
-import { createContext } from './utils/trpc'
-import { allowedOrigins } from './utils/constants'
-import { auditTrailMiddleware } from './middlewares/audit-trail'
-import { env } from './utils/env'
+import { router, type ApiContext } from './router';
+import { auth } from './utils/auth';
+import { allowedOrigins } from './utils/constants';
+import { auditTrailMiddleware } from './middlewares/audit-trail';
+import { env } from './utils/env';
+import { db } from './db';
+import { createLogger } from './utils/logger';
+import { toORPCError } from './router';
+
+const logger = createLogger('oRPC');
+
+const rpcHandler = new RPCHandler(router, {
+  interceptors: [
+    onError((error, { path }) => {
+      logger.error(`oRPC request failed on ${path.join('.')}`, { error });
+    }),
+    async ({ next }) => {
+      try {
+        return await next();
+      } catch (error) {
+        throw toORPCError(error);
+      }
+    },
+  ],
+});
+
+const openAPIGenerator = new OpenAPIGenerator({
+  schemaConverters: [new experimental_ValibotToJsonSchemaConverter()],
+});
+
+type AppVariables = RequestIdVariables & {
+  user: typeof auth.$Infer.Session.user | null;
+  session: typeof auth.$Infer.Session.session | null;
+  activeOrganizationId: string | null;
+};
+
+function createContext(c: { get: (key: keyof AppVariables) => unknown }): ApiContext {
+  const user = c.get('user') as AppVariables['user'];
+  const session = c.get('session') as AppVariables['session'];
+  const requestId = c.get('requestId') as string | undefined;
+
+  return {
+    db,
+    requestId: requestId ?? null,
+    user,
+    session,
+    service: {
+      organizationId: session?.activeOrganizationId ?? '',
+      requestId: requestId ?? null,
+    },
+  };
+}
 
 export function createApp() {
-    const app = new Hono<{
-        Variables: RequestIdVariables & {
-            user: typeof auth.$Infer.Session.user | null;
-            session: typeof auth.$Infer.Session.session | null
-            activeOrganizationId: string | null
-        }
-    }>();
+  const app = new Hono<{ Variables: AppVariables }>();
 
-    /**
-     * ******************************
-     * ******MIDDLEWARES START*******
-     * ******************************
-     */
-    // This enables request ID generation for all routes
-    app.use('*', requestId());
+  app.use('*', requestId());
 
-    app.use(
-        "*",
-        cors({
-            origin: origin => {
-                if (!origin) return '';
-                const allowed = allowedOrigins.includes(origin);
-                return allowed ? origin : '';
-            },
-            allowHeaders: ["Content-Type", "Authorization"],
-            allowMethods: ["POST", "GET", "OPTIONS"],
-            maxAge: 600,
-            credentials: true,
-        })
-    );
+  app.use(
+    '*',
+    cors({
+      origin: (origin) => {
+        if (!origin) return '';
+        return allowedOrigins.includes(origin) ? origin : '';
+      },
+      allowHeaders: ['Content-Type', 'Authorization'],
+      allowMethods: ['POST', 'GET', 'PATCH', 'DELETE', 'OPTIONS'],
+      maxAge: 600,
+      credentials: true,
+    }),
+  );
 
-    // set user and session in context
-    app.use("*", async (c, next) => {
-        const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  app.use('*', async (c, next) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
-        if (!session) {
-            c.set("user", null);
-            c.set("session", null);
-            await next();
-            return;
-        }
+    c.set('user', session?.user ?? null);
+    c.set('session', session?.session ?? null);
+    c.set('activeOrganizationId', session?.session?.activeOrganizationId ?? null);
+    await next();
+  });
 
-        c.set("user", session.user);
-        c.set("session", session.session);
-        c.set("activeOrganizationId", session.session?.activeOrganizationId ?? null);
-        await next();
+  if (env.STAGE && env.ROOT_DOMAIN) {
+    app.use('/*', auditTrailMiddleware);
+  }
+
+  app.get('/health', (c) => c.json({ status: 'ok', message: 'Service is healthy' }));
+
+  app.on(['POST', 'GET'], '/api/auth/*', (c) => auth.handler(c.req.raw));
+
+  app.all('/api/orpc/*', async (c, next) => {
+    const { matched, response } = await rpcHandler.handle(c.req.raw, {
+      prefix: '/api/orpc',
+      context: createContext(c),
     });
 
-    if (env.STAGE && env.ROOT_DOMAIN)
-        /**
-        * Audit trail middleware - logs all requests and responses.
-        * Applies to all routes (both protected and public).
-        * For protected routes that go through verifySignature, uses cached rawBody for efficiency.
-        * For public routes, reads body directly when needed.
-        *
-        * @see {@link auditTrailMiddleware} - Full middleware documentation
-        * @see {@link verifySignature} - Sets rawBody in context for protected routes
-        * @see {@link events.onError} - Formats error responses after logging
-        */
-        app.use('/*', auditTrailMiddleware);
+    if (matched) {
+      return c.newResponse(response.body, response);
+    }
 
+    await next();
+  });
 
-    /**
-     * ******************************
-     * ******MIDDLEWARES END*********
-     * ******************************
-     */
-
-    /**
-     * ******************************
-     * ******ROUTES START***********
-     * ******************************
-     */
-
-    app.get('/health', (c) => {
-        return c.json({ status: 'ok', message: 'Service is healthy' })
-    })
-
-    // auth routes
-    app.on(["POST", "GET"], "/api/auth/*", async (c) => {
-        return auth.handler(c.req.raw);
+  app.get('/api/openapi.json', async (c) => {
+    const spec = await openAPIGenerator.generate(router, {
+      info: {
+        title: 'BookingApp API',
+        version: '1.0.0',
+      },
+      servers: [{ url: '/api/orpc' }],
     });
 
-    // trpc routes
-    app.all('/api/trpc/*', (c) => {
-        const id = c.get('requestId');
-        return fetchRequestHandler({
-            endpoint: '/api/trpc',
-            req: c.req.raw,
-            router: appRouter,
-            createContext: (opts) => createContext({ ...opts, requestId: id }),
-        })
-    })
+    return c.json(spec);
+  });
 
-    /**
-     * ******************************
-     * ******ROUTES END*************
-     * ******************************
-     */
-
-    return app;
+  return app;
 }
+
+export type { AppVariables };

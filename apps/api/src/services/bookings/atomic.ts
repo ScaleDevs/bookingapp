@@ -1,10 +1,9 @@
 import { eq, and } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
-
 import { db } from '@db';
 import { booking, customer, offering } from '@db/schema';
 
 import { createLogger } from '@utils/logger';
+import { ApiError } from '@utils/errors';
 import { BaseService } from '@utils/types';
 
 function createBookingLogger(requestId: string | null | undefined, organizationId: string) {
@@ -39,11 +38,11 @@ export async function create({ requestId, organizationId }: BaseService, input: 
         ]);
 
         if (!offeringRecord) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Offering not found' });
+            throw new ApiError({ code: 'NOT_FOUND', message: 'Offering not found' });
         }
 
         if (!customerRecord) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Customer not found' });
+            throw new ApiError({ code: 'NOT_FOUND', message: 'Customer not found' });
         }
 
         const [result] = await db.insert(booking).values({
@@ -55,9 +54,9 @@ export async function create({ requestId, organizationId }: BaseService, input: 
 
         return result;
     } catch (error) {
-        if (error instanceof TRPCError) throw error;
+        if (error instanceof ApiError) throw error;
 
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to create booking: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -77,7 +76,7 @@ export async function update({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to update booking: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -96,7 +95,7 @@ export async function remove({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to delete booking: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });

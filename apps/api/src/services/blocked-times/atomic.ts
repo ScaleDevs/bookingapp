@@ -1,10 +1,9 @@
 import { eq, and } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
-
 import { db } from '@db';
 import { offering, blockedTime } from '@db/schema';
 
 import { createLogger } from '@utils/logger';
+import { ApiError } from '@utils/errors';
 import { BaseService } from '@utils/types';
 
 function createBlockedTimeLogger(requestId: string | null | undefined, organizationId: string) {
@@ -35,7 +34,7 @@ export async function create({ requestId, organizationId }: BaseService, input: 
     try {
         const offeringRecord = await verifyOfferingAccess(organizationId, input.offeringId);
         if (!offeringRecord) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Offering not found' });
+            throw new ApiError({ code: 'NOT_FOUND', message: 'Offering not found' });
         }
 
         const [result] = await db.insert(blockedTime).values(input).returning();
@@ -44,9 +43,9 @@ export async function create({ requestId, organizationId }: BaseService, input: 
 
         return result;
     } catch (error) {
-        if (error instanceof TRPCError) throw error;
+        if (error instanceof ApiError) throw error;
 
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to create blocked time: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -63,7 +62,7 @@ export async function update({ requestId, organizationId }: BaseService, id: str
         });
 
         if (!existing || existing.offering.organizationId !== organizationId) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Blocked time not found' });
+            throw new ApiError({ code: 'NOT_FOUND', message: 'Blocked time not found' });
         }
 
         const [result] = await db.update(blockedTime).set({
@@ -75,9 +74,9 @@ export async function update({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        if (error instanceof TRPCError) throw error;
+        if (error instanceof ApiError) throw error;
 
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to update blocked time: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -94,7 +93,7 @@ export async function remove({ requestId, organizationId }: BaseService, id: str
         });
 
         if (!existing || existing.offering.organizationId !== organizationId) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Blocked time not found' });
+            throw new ApiError({ code: 'NOT_FOUND', message: 'Blocked time not found' });
         }
 
         const [result] = await db.delete(blockedTime)
@@ -105,9 +104,9 @@ export async function remove({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        if (error instanceof TRPCError) throw error;
+        if (error instanceof ApiError) throw error;
 
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to delete blocked time: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });

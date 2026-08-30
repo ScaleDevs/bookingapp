@@ -1,10 +1,9 @@
 import { eq, and } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
-
 import { db } from '@db';
 import { customer } from '@db/schema';
 
 import { createLogger } from '@utils/logger';
+import { ApiError } from '@utils/errors';
 import { BaseService } from '@utils/types';
 
 function createCustomerLogger(requestId: string | null | undefined, organizationId: string) {
@@ -36,7 +35,7 @@ export async function create({ requestId, organizationId }: BaseService, input: 
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to create customer: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -56,7 +55,7 @@ export async function update({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to update customer: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -75,7 +74,7 @@ export async function remove({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to delete customer: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
