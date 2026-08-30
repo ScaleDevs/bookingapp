@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { requestId, type RequestIdVariables } from 'hono/request-id';
-import { ORPCError, onError } from '@orpc/server';
 import { RPCHandler } from '@orpc/server/fetch';
 import { OpenAPIGenerator } from '@orpc/openapi';
 import { experimental_ValibotToJsonSchemaConverter } from '@orpc/valibot';
@@ -19,13 +18,11 @@ const logger = createLogger('oRPC');
 
 const rpcHandler = new RPCHandler(router, {
   interceptors: [
-    onError((error, { path }) => {
-      logger.error(`oRPC request failed on ${path.join('.')}`, { error });
-    }),
     async ({ next }) => {
       try {
         return await next();
       } catch (error) {
+        logger.error('oRPC request failed', { error });
         throw toORPCError(error);
       }
     },

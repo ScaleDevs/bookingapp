@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import {
   IconCalendarEvent,
@@ -28,7 +29,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { authClient } from "@/lib/auth-client"
-import { trpc } from "@/lib/trpc/client"
+import { orpc } from "@/lib/orpc/client"
 import { useAuthStore } from "@/hooks/auth/useAuthStore"
 
 const data = {
@@ -88,7 +89,9 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: organization } = trpc.auth.getOrganization.useQuery()
+  const { data: organization } = useQuery(
+    orpc.auth.getOrganization.queryOptions({ input: {} })
+  )
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>

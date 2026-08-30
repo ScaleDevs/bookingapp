@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import { useMutation } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -22,9 +23,10 @@ import {
   SheetTitle,
   createSheetHandle,
 } from "@/components/ui/sheet"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { orpc, type APIOutputs } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 
-type Schedule = TRPCOutputs["offeringSchedules"]["list"]["items"][number]
+type Schedule = APIOutputs["offeringSchedules"]["list"]["items"][number]
 
 export const editScheduleSheetHandle = createSheetHandle<Schedule>()
 
@@ -81,12 +83,12 @@ type EditScheduleSheetContentProps = {
 }
 
 function EditScheduleSheetContent({ schedule }: EditScheduleSheetContentProps) {
-  const utils = trpc.useUtils()
-  const updateSchedule = trpc.offeringSchedules.update.useMutation({
+  const utils = useORPCUtils()
+  const updateSchedule = useMutation(orpc.offeringSchedules.update.mutationOptions({
     onSuccess: () => {
       void utils.offeringSchedules.list.invalidate()
     },
-  })
+  }))
 
   const form = useForm<EditScheduleFormValues>({
     resolver: valibotResolver(

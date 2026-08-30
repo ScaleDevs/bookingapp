@@ -8,10 +8,10 @@ import {
   SheetTitle,
   createSheetHandle,
 } from "@/components/ui/sheet"
-import { type TRPCOutputs } from "@/lib/trpc/client"
+import { type APIOutputs } from "@/lib/orpc/client"
 import { Edit } from "./edit"
 
-type BlockedTime = TRPCOutputs["blockedTimes"]["list"]["items"][number]
+type BlockedTime = APIOutputs["blockedTimes"]["list"]["items"][number]
 
 export const detailsSheetHandle = createSheetHandle<BlockedTime>()
 

@@ -58,6 +58,16 @@ export const offeringScheduleSchema = v.object({
   updatedAt: dateSchema,
 });
 
+export const offeringScheduleListItemSchema = v.object({
+  id: uuidSchema,
+  offeringId: uuidSchema,
+  dayOfWeek: v.string(),
+  startTime: v.string(),
+  endTime: v.string(),
+  isActive: v.boolean(),
+  createdAt: dateSchema,
+});
+
 export const blockedTimeSchema = v.object({
   id: uuidSchema,
   offeringId: uuidSchema,
@@ -66,6 +76,15 @@ export const blockedTimeSchema = v.object({
   reason: nullableStringSchema,
   createdAt: dateSchema,
   updatedAt: dateSchema,
+});
+
+export const blockedTimeListItemSchema = v.object({
+  id: uuidSchema,
+  offeringId: uuidSchema,
+  startsAt: dateSchema,
+  endsAt: dateSchema,
+  reason: nullableStringSchema,
+  createdAt: dateSchema,
 });
 
 export const customerSchema = v.object({
@@ -105,12 +124,12 @@ export const offeringListSchema = v.object({
 });
 
 export const offeringScheduleListSchema = v.object({
-  items: v.array(offeringScheduleSchema),
+  items: v.array(offeringScheduleListItemSchema),
   ...paginationSchema.entries,
 });
 
 export const blockedTimeListSchema = v.object({
-  items: v.array(blockedTimeSchema),
+  items: v.array(blockedTimeListItemSchema),
   ...paginationSchema.entries,
 });
 

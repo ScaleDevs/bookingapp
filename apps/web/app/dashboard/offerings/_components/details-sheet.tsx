@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
 import {
   Sheet,
@@ -11,7 +12,7 @@ import {
   createSheetHandle,
 } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { trpc } from "@/lib/trpc/client"
+import { orpc } from "@/lib/orpc/client"
 import { View } from "./view"
 import { Edit } from "./edit"
 
@@ -32,9 +33,9 @@ function DetailsSheetContent({
   defaultTab,
 }: DetailsSheetContentProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
-  const { data: offering, isLoading } = trpc.offerings.getById.useQuery({
-    id: offeringId,
-  })
+  const { data: offering, isLoading } = useQuery(
+    orpc.offerings.getById.queryOptions({ input: { id: offeringId } })
+  )
 
   useEffect(() => {
     setActiveTab(defaultTab)

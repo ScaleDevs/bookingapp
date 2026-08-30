@@ -1,5 +1,5 @@
 import { oc } from '@orpc/contract';
-import { openapi } from '@orpc/openapi';
+import type { Route } from '@orpc/contract';
 import * as v from 'valibot';
 
 import {
@@ -19,6 +19,7 @@ import {
   uuidSchema,
 } from './schemas';
 
+const openapi = (route: Route): Route => route;
 const protectedContract = oc.errors(commonErrors);
 const protectedGetContract = protectedContract.input(v.object({}));
 
@@ -57,16 +58,16 @@ const idInput = v.object({ id: uuidSchema });
 
 export const contract = {
   health: oc
-    .meta(openapi({ method: 'GET', path: '/health', tags: ['system'] }))
+    .route(openapi({ method: 'GET', path: '/health', tags: ['system'] }))
     .output(healthSchema),
 
   testProtected: protectedGetContract
-    .meta(openapi({ method: 'GET', path: '/test-protected', tags: ['system'] }))
+    .route(openapi({ method: 'GET', path: '/test-protected', tags: ['system'] }))
     .output(healthSchema),
 
   auth: {
     getOrganization: protectedGetContract
-      .meta(openapi({ method: 'GET', path: '/auth/organization', tags: ['auth'] }))
+      .route(openapi({ method: 'GET', path: '/auth/organization', tags: ['auth'] }))
       .output(organizationSchema),
   },
 
@@ -83,30 +84,30 @@ export const contract = {
           ),
         }),
       )
-      .meta(openapi({ method: 'GET', path: '/offerings', tags: ['offerings'] }))
+      .route(openapi({ method: 'GET', path: '/offerings', tags: ['offerings'] }))
       .output(offeringListSchema),
     getById: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'GET', path: '/offerings/{id}', tags: ['offerings'] }))
+      .route(openapi({ method: 'GET', path: '/offerings/{id}', tags: ['offerings'] }))
       .output(v.nullable(offeringSchema)),
     getSelectOptions: protectedGetContract
-      .meta(openapi({ method: 'GET', path: '/offerings/select-options', tags: ['offerings'] }))
+      .route(openapi({ method: 'GET', path: '/offerings/select-options', tags: ['offerings'] }))
       .output(v.array(offeringSelectOptionSchema)),
     create: protectedContract
       .input(createOfferingInput)
-      .meta(openapi({ method: 'POST', path: '/offerings', tags: ['offerings'] }))
+      .route(openapi({ method: 'POST', path: '/offerings', tags: ['offerings'] }))
       .output(offeringSchema),
     update: protectedContract
       .input(v.object({ id: uuidSchema, data: v.partial(createOfferingInput) }))
-      .meta(openapi({ method: 'PATCH', path: '/offerings/{id}', tags: ['offerings'] }))
+      .route(openapi({ method: 'PATCH', path: '/offerings/{id}', tags: ['offerings'] }))
       .output(offeringSchema),
     delete: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'DELETE', path: '/offerings/{id}', tags: ['offerings'] }))
+      .route(openapi({ method: 'DELETE', path: '/offerings/{id}', tags: ['offerings'] }))
       .output(offeringSchema),
     toggleStatus: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'POST', path: '/offerings/{id}/toggle-status', tags: ['offerings'] }))
+      .route(openapi({ method: 'POST', path: '/offerings/{id}/toggle-status', tags: ['offerings'] }))
       .output(offeringSchema),
   },
 
@@ -124,23 +125,23 @@ export const contract = {
           ),
         }),
       )
-      .meta(openapi({ method: 'GET', path: '/offering-schedules', tags: ['offering-schedules'] }))
+      .route(openapi({ method: 'GET', path: '/offering-schedules', tags: ['offering-schedules'] }))
       .output(offeringScheduleListSchema),
     getById: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'GET', path: '/offering-schedules/{id}', tags: ['offering-schedules'] }))
+      .route(openapi({ method: 'GET', path: '/offering-schedules/{id}', tags: ['offering-schedules'] }))
       .output(v.nullable(v.intersect([offeringScheduleSchema, v.object({ offering: offeringSchema })]))),
     create: protectedContract
       .input(createScheduleInput)
-      .meta(openapi({ method: 'POST', path: '/offering-schedules', tags: ['offering-schedules'] }))
+      .route(openapi({ method: 'POST', path: '/offering-schedules', tags: ['offering-schedules'] }))
       .output(offeringScheduleSchema),
     update: protectedContract
       .input(v.object({ id: uuidSchema, data: v.partial(v.omit(createScheduleInput, ['offeringId'])) }))
-      .meta(openapi({ method: 'PATCH', path: '/offering-schedules/{id}', tags: ['offering-schedules'] }))
+      .route(openapi({ method: 'PATCH', path: '/offering-schedules/{id}', tags: ['offering-schedules'] }))
       .output(offeringScheduleSchema),
     delete: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'DELETE', path: '/offering-schedules/{id}', tags: ['offering-schedules'] }))
+      .route(openapi({ method: 'DELETE', path: '/offering-schedules/{id}', tags: ['offering-schedules'] }))
       .output(offeringScheduleSchema),
   },
 
@@ -159,11 +160,11 @@ export const contract = {
           ),
         }),
       )
-      .meta(openapi({ method: 'GET', path: '/blocked-times', tags: ['blocked-times'] }))
+      .route(openapi({ method: 'GET', path: '/blocked-times', tags: ['blocked-times'] }))
       .output(blockedTimeListSchema),
     getById: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'GET', path: '/blocked-times/{id}', tags: ['blocked-times'] }))
+      .route(openapi({ method: 'GET', path: '/blocked-times/{id}', tags: ['blocked-times'] }))
       .output(v.nullable(v.intersect([blockedTimeSchema, v.object({ offering: offeringSchema })]))),
     create: protectedContract
       .input(
@@ -174,7 +175,7 @@ export const contract = {
           reason: v.optional(v.nullable(v.string())),
         }),
       )
-      .meta(openapi({ method: 'POST', path: '/blocked-times', tags: ['blocked-times'] }))
+      .route(openapi({ method: 'POST', path: '/blocked-times', tags: ['blocked-times'] }))
       .output(blockedTimeSchema),
     update: protectedContract
       .input(
@@ -189,21 +190,21 @@ export const contract = {
           ),
         }),
       )
-      .meta(openapi({ method: 'PATCH', path: '/blocked-times/{id}', tags: ['blocked-times'] }))
+      .route(openapi({ method: 'PATCH', path: '/blocked-times/{id}', tags: ['blocked-times'] }))
       .output(blockedTimeSchema),
     delete: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'DELETE', path: '/blocked-times/{id}', tags: ['blocked-times'] }))
+      .route(openapi({ method: 'DELETE', path: '/blocked-times/{id}', tags: ['blocked-times'] }))
       .output(blockedTimeSchema),
   },
 
   customers: {
     list: protectedGetContract
-      .meta(openapi({ method: 'GET', path: '/customers', tags: ['customers'] }))
+      .route(openapi({ method: 'GET', path: '/customers', tags: ['customers'] }))
       .output(v.array(customerSchema)),
     getById: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'GET', path: '/customers/{id}', tags: ['customers'] }))
+      .route(openapi({ method: 'GET', path: '/customers/{id}', tags: ['customers'] }))
       .output(v.nullable(customerSchema)),
     create: protectedContract
       .input(
@@ -214,7 +215,7 @@ export const contract = {
           notes: v.optional(v.nullable(v.string())),
         }),
       )
-      .meta(openapi({ method: 'POST', path: '/customers', tags: ['customers'] }))
+      .route(openapi({ method: 'POST', path: '/customers', tags: ['customers'] }))
       .output(customerSchema),
     update: protectedContract
       .input(
@@ -230,21 +231,21 @@ export const contract = {
           ),
         }),
       )
-      .meta(openapi({ method: 'PATCH', path: '/customers/{id}', tags: ['customers'] }))
+      .route(openapi({ method: 'PATCH', path: '/customers/{id}', tags: ['customers'] }))
       .output(customerSchema),
     delete: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'DELETE', path: '/customers/{id}', tags: ['customers'] }))
+      .route(openapi({ method: 'DELETE', path: '/customers/{id}', tags: ['customers'] }))
       .output(customerSchema),
   },
 
   bookings: {
     list: protectedGetContract
-      .meta(openapi({ method: 'GET', path: '/bookings', tags: ['bookings'] }))
+      .route(openapi({ method: 'GET', path: '/bookings', tags: ['bookings'] }))
       .output(v.array(bookingSchema)),
     getById: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'GET', path: '/bookings/{id}', tags: ['bookings'] }))
+      .route(openapi({ method: 'GET', path: '/bookings/{id}', tags: ['bookings'] }))
       .output(v.nullable(bookingSchema)),
     create: protectedContract
       .input(
@@ -257,7 +258,7 @@ export const contract = {
           notes: v.optional(v.nullable(v.string())),
         }),
       )
-      .meta(openapi({ method: 'POST', path: '/bookings', tags: ['bookings'] }))
+      .route(openapi({ method: 'POST', path: '/bookings', tags: ['bookings'] }))
       .output(bookingSchema),
     update: protectedContract
       .input(
@@ -273,11 +274,11 @@ export const contract = {
           ),
         }),
       )
-      .meta(openapi({ method: 'PATCH', path: '/bookings/{id}', tags: ['bookings'] }))
+      .route(openapi({ method: 'PATCH', path: '/bookings/{id}', tags: ['bookings'] }))
       .output(bookingSchema),
     delete: protectedContract
       .input(idInput)
-      .meta(openapi({ method: 'DELETE', path: '/bookings/{id}', tags: ['bookings'] }))
+      .route(openapi({ method: 'DELETE', path: '/bookings/{id}', tags: ['bookings'] }))
       .output(bookingSchema),
   },
 } as const;

@@ -1,6 +1,7 @@
 "use client"
 
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -12,7 +13,8 @@ import {
   FormTextarea,
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
-import { trpc } from "@/lib/trpc/client"
+import { orpc } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 import {
   Sheet,
   SheetContent,
@@ -53,14 +55,16 @@ type CreateFormProps = {
 }
 
 export function CreateForm({ open, onOpenChange }: CreateFormProps) {
-  const utils = trpc.useUtils()
-  const createBlockedTime = trpc.blockedTimes.create.useMutation({
+  const utils = useORPCUtils()
+  const createBlockedTime = useMutation(orpc.blockedTimes.create.mutationOptions({
     onSuccess: () => {
       void utils.blockedTimes.list.invalidate()
     },
-  })
+  }))
 
-  const offeringsQuery = trpc.offerings.getSelectOptions.useQuery()
+  const offeringsQuery = useQuery(
+    orpc.offerings.getSelectOptions.queryOptions({ input: {} })
+  )
 
   const offerings = offeringsQuery.data ?? []
 

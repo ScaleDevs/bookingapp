@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import { useMutation } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -14,9 +15,10 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { SheetFooter } from "@/components/ui/sheet"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { orpc, type APIOutputs } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 
-type Offering = TRPCOutputs["offerings"]["getById"]
+type Offering = APIOutputs["offerings"]["getById"]
 
 const updateOfferingSchema = v.object({
   name: v.pipe(
@@ -67,13 +69,13 @@ export function Edit({
   onSuccess,
   onCancel,
 }: EditProps) {
-  const utils = trpc.useUtils()
-  const updateOffering = trpc.offerings.update.useMutation({
+  const utils = useORPCUtils()
+  const updateOffering = useMutation(orpc.offerings.update.mutationOptions({
     onSuccess: () => {
       void utils.offerings.list.invalidate()
       void utils.offerings.getById.invalidate()
     },
-  })
+  }))
 
   const form = useForm<UpdateFormValues>({
     resolver: valibotResolver(

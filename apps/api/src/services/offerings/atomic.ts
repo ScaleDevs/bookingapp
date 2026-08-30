@@ -58,7 +58,7 @@ export async function update({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to update offering: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
@@ -77,7 +77,7 @@ export async function remove({ requestId, organizationId }: BaseService, id: str
 
         return result;
     } catch (error) {
-        throw new TRPCError({
+        throw new ApiError({
             code: 'INTERNAL_SERVER_ERROR',
             message: `Failed to delete offering: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });

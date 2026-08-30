@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import { useMutation } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -13,9 +14,10 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { SheetFooter } from "@/components/ui/sheet"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { orpc, type APIOutputs } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 
-type BlockedTime = TRPCOutputs["blockedTimes"]["list"]["items"][number]
+type BlockedTime = APIOutputs["blockedTimes"]["list"]["items"][number]
 
 const updateBlockedTimeSchema = v.object({
   startsAt: v.pipe(
@@ -55,12 +57,12 @@ export function Edit({
   onSuccess,
   onCancel,
 }: EditProps) {
-  const utils = trpc.useUtils()
-  const updateBlockedTime = trpc.blockedTimes.update.useMutation({
+  const utils = useORPCUtils()
+  const updateBlockedTime = useMutation(orpc.blockedTimes.update.mutationOptions({
     onSuccess: () => {
       void utils.blockedTimes.list.invalidate()
     },
-  })
+  }))
 
   const form = useForm<UpdateFormValues>({
     resolver: valibotResolver(

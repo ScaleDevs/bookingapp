@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { IconPlus } from "@tabler/icons-react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import { useMutation } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -23,7 +24,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { trpc } from "@/lib/trpc/client"
+import { orpc } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 
 const createScheduleSchema = v.pipe(
   v.object({
@@ -87,12 +89,12 @@ type CreateScheduleSheetProps = {
 
 export function CreateScheduleSheet({ offeringId }: CreateScheduleSheetProps) {
   const [open, setOpen] = useState(false)
-  const utils = trpc.useUtils()
-  const createSchedule = trpc.offeringSchedules.create.useMutation({
+  const utils = useORPCUtils()
+  const createSchedule = useMutation(orpc.offeringSchedules.create.mutationOptions({
     onSuccess: () => {
       void utils.offeringSchedules.list.invalidate()
     },
-  })
+  }))
 
   const form = useForm<CreateScheduleFormValues>({
     resolver: valibotResolver(

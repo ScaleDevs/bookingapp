@@ -87,7 +87,7 @@ export const router = implementation.router({
       offeringQueries.list(context.service, input),
     ),
     getById: protectedImplementation.offerings.getById.handler(({ context, input }) =>
-      offeringQueries.getById(context.service, input.id),
+      offeringQueries.getById(context.service, input.id).then((result) => result ?? null),
     ),
     getSelectOptions: protectedImplementation.offerings.getSelectOptions.handler(({ context }) =>
       offeringQueries.getSelectOptions(context.service),
@@ -129,7 +129,7 @@ export const router = implementation.router({
       blockedTimeQueries.list(context.service, input),
     ),
     getById: protectedImplementation.blockedTimes.getById.handler(({ context, input }) =>
-      blockedTimeQueries.getById(context.service, input.id),
+      blockedTimeQueries.getById(context.service, input.id).then((result) => result ?? null),
     ),
     create: protectedImplementation.blockedTimes.create.handler(({ context, input }) =>
       blockedTimeAtomic.create(context.service, input),
@@ -147,7 +147,7 @@ export const router = implementation.router({
       customerQueries.list(context.service),
     ),
     getById: protectedImplementation.customers.getById.handler(({ context, input }) =>
-      customerQueries.getById(context.service, input.id),
+      customerQueries.getById(context.service, input.id).then((result) => result ?? null),
     ),
     create: protectedImplementation.customers.create.handler(({ context, input }) =>
       customerAtomic.create(context.service, input),
@@ -165,7 +165,7 @@ export const router = implementation.router({
       bookingQueries.list(context.service),
     ),
     getById: protectedImplementation.bookings.getById.handler(({ context, input }) =>
-      bookingQueries.getById(context.service, input.id),
+      bookingQueries.getById(context.service, input.id).then((result) => result ?? null),
     ),
     create: protectedImplementation.bookings.create.handler(({ context, input }) =>
       bookingAtomic.create(context.service, input),

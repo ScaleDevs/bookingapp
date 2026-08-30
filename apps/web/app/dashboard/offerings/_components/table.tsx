@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import {
   IconDotsVertical,
@@ -32,11 +33,12 @@ import {
   TablePaginationV1,
   TableV1,
 } from "@/components/shared/table-v1"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { orpc, type APIOutputs } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 import { cn } from "@/lib/utils"
 import { EmptyState } from "./empty-state"
 
-type ListItem = TRPCOutputs["offerings"]["list"]["items"][number]
+type ListItem = APIOutputs["offerings"]["list"]["items"][number]
 
 function formatDuration(minutes: number) {
   if (minutes < 60) {
@@ -172,7 +174,7 @@ export function Table() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
 
-  const utils = trpc.useUtils()
+  const utils = useORPCUtils()
 
   useEffect(() => {
     setPage(1)
@@ -180,18 +182,22 @@ export function Table() {
 
   const filterInput = filtersToListInput(filters)
 
-  const offeringsQuery = trpc.offerings.list.useQuery({
-    page,
-    pageSize,
-    sortOrder: "desc",
-    filters: filterInput,
-  })
+  const offeringsQuery = useQuery(
+    orpc.offerings.list.queryOptions({
+      input: {
+        page,
+        pageSize,
+        sortOrder: "desc",
+        filters: filterInput,
+      },
+    })
+  )
 
-  const toggleStatusMutation = trpc.offerings.toggleStatus.useMutation({
+  const toggleStatusMutation = useMutation(orpc.offerings.toggleStatus.mutationOptions({
     onSuccess: () => {
       void utils.offerings.list.invalidate()
     },
-  })
+  }))
 
   const list = offeringsQuery.data
   const tableRows: ListItem[] = list?.items ?? []

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
@@ -29,14 +30,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatTime12Hour } from "@/lib/format-time"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { orpc, type APIOutputs } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 import { cn } from "@/lib/utils"
 import {
   EditScheduleSheet,
   editScheduleSheetHandle,
 } from "./edit-schedule-sheet"
 
-type ListItem = TRPCOutputs["offeringSchedules"]["list"]["items"][number]
+type ListItem = APIOutputs["offeringSchedules"]["list"]["items"][number]
 
 type SchedulesTableProps = {
   offeringId: string
@@ -137,16 +139,15 @@ export function SchedulesTable({ offeringId }: SchedulesTableProps) {
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
   const [deleteTarget, setDeleteTarget] = useState<ListItem | null>(null)
 
-  const utils = trpc.useUtils()
+  const utils = useORPCUtils()
 
-  const schedulesQuery = trpc.offeringSchedules.list.useQuery({
-    offeringId,
-    page,
-    pageSize,
-    sortOrder: "asc",
-  })
+  const schedulesQuery = useQuery(
+    orpc.offeringSchedules.list.queryOptions({
+      input: { offeringId, page, pageSize, sortOrder: "asc" },
+    })
+  )
 
-  const deleteMutation = trpc.offeringSchedules.delete.useMutation({
+  const deleteMutation = useMutation(orpc.offeringSchedules.delete.mutationOptions({
     onSuccess: () => {
       void utils.offeringSchedules.list.invalidate()
       toast.success("Schedule deleted successfully")
@@ -155,7 +156,7 @@ export function SchedulesTable({ offeringId }: SchedulesTableProps) {
     onError: (error) => {
       toast.error(error.message)
     },
-  })
+  }))
 
   const list = schedulesQuery.data
   const tableRows: ListItem[] = list?.items ?? []

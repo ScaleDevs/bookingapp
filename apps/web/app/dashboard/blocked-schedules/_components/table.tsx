@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
@@ -34,9 +35,10 @@ import {
   TablePaginationV1,
   TableV1,
 } from "@/components/shared/table-v1"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { orpc, type APIOutputs } from "@/lib/orpc/client"
+import { useORPCUtils } from "@/lib/orpc/utils"
 
-type ListItem = TRPCOutputs["blockedTimes"]["list"]["items"][number]
+type ListItem = APIOutputs["blockedTimes"]["list"]["items"][number]
 
 function formatDateTime(date: Date | string) {
   const d = typeof date === "string" ? new Date(date) : date
@@ -124,7 +126,7 @@ export function Table() {
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
   const [deleteTarget, setDeleteTarget] = useState<ListItem | null>(null)
 
-  const utils = trpc.useUtils()
+  const utils = useORPCUtils()
 
   useEffect(() => {
     setPage(1)
@@ -132,20 +134,20 @@ export function Table() {
 
   const filterInput = filtersToListInput(filters)
 
-  const blockedTimesQuery = trpc.blockedTimes.list.useQuery(
-    {
-      offeringId: filters.offeringId!,
-      page,
-      pageSize,
-      sortOrder: "desc",
-      filters: filterInput,
-    },
-    {
+  const blockedTimesQuery = useQuery(
+    orpc.blockedTimes.list.queryOptions({
+      input: {
+        offeringId: filters.offeringId!,
+        page,
+        pageSize,
+        sortOrder: "desc",
+        filters: filterInput,
+      },
       enabled: !!filters.offeringId,
-    }
+    })
   )
 
-  const deleteMutation = trpc.blockedTimes.delete.useMutation({
+  const deleteMutation = useMutation(orpc.blockedTimes.delete.mutationOptions({
     onSuccess: () => {
       void utils.blockedTimes.list.invalidate()
       toast.success("Blocked time deleted successfully")
@@ -154,7 +156,7 @@ export function Table() {
     onError: (error) => {
       toast.error(error.message)
     },
-  })
+  }))
 
   const list = blockedTimesQuery.data
   const tableRows: ListItem[] = list?.items ?? []

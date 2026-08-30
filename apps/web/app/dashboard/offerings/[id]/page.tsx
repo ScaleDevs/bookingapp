@@ -1,7 +1,7 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { notFound } from "next/navigation"
 
-import { getTRPCQueryUtils } from "@/lib/trpc/server"
+import { getORPCQueryUtils } from "@/lib/orpc/server"
 import { EditSheetProvider } from "./_provider/edit-sheet-provider"
 import { DetailsSection } from "./_components/details-section"
 import { SchedulesTable } from "./_components/schedules-table"
@@ -13,14 +13,13 @@ type PageProps = {
 }
 
 async function SchedulesServerWrapper({ offeringId }: { offeringId: string }) {
-  const { trpc, queryClient } = await getTRPCQueryUtils()
+  const { orpc, queryClient } = await getORPCQueryUtils()
 
-  await trpc.offeringSchedules.list.prefetch({
-    offeringId,
-    page: 1,
-    pageSize: 10,
-    sortOrder: "asc",
-  })
+  await queryClient.prefetchQuery(
+    orpc.offeringSchedules.list.queryOptions({
+      input: { offeringId, page: 1, pageSize: 10, sortOrder: "asc" },
+    })
+  )
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
@@ -44,9 +43,11 @@ export default async function OfferingDetailsPage({ params }: PageProps) {
     notFound()
   }
 
-  const { trpc, queryClient } = await getTRPCQueryUtils()
+  const { orpc, queryClient } = await getORPCQueryUtils()
 
-  await trpc.offerings.getById.prefetch({ id: offeringId })
+  await queryClient.prefetchQuery(
+    orpc.offerings.getById.queryOptions({ input: { id: offeringId } })
+  )
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
