@@ -16,6 +16,7 @@ import {
   offeringSelectOptionSchema,
   organizationSchema,
   coerceDateSchema,
+  normalizedStringSchema,
   uuidSchema,
 } from './schemas';
 
@@ -78,7 +79,7 @@ export const contract = {
           ...listInput.entries,
           filters: v.optional(
             v.object({
-              name: v.optional(v.string()),
+              name: v.optional(normalizedStringSchema),
               isActive: v.optional(v.boolean()),
             }),
           ),
@@ -153,7 +154,7 @@ export const contract = {
           offeringId: uuidSchema,
           filters: v.optional(
             v.object({
-              reason: v.optional(v.string()),
+              reason: v.optional(normalizedStringSchema),
               dateFrom: v.optional(coerceDateSchema),
               dateTo: v.optional(coerceDateSchema),
             }),

@@ -3,6 +3,11 @@ import * as v from 'valibot';
 export const uuidSchema = v.pipe(v.string(), v.uuid());
 export const nullableStringSchema = v.nullable(v.string());
 
+export const normalizedStringSchema = v.pipe(
+  v.string(),
+  v.transform((value) => value.split(/\s+/).filter(Boolean).join(' ').trim()),
+);
+
 /** Accept the JSON representations used by browsers and normalize them for the API. */
 export const coerceDateSchema = v.pipe(
   v.unknown(),
