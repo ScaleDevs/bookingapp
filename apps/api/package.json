@@ -11,7 +11,7 @@
     "remove:dev": "sst remove --stage dev",
     "remove:local": "sst remove --stage local",
     "check-types": "tsc --noEmit",
-    "build": "esbuild --bundle --outfile=./dist/index.js --platform=node --target=node20 ./src/index.ts",
+    "build": "esbuild --bundle --outfile=./dist/index.js --platform=node --target=node20 ./src/lambda.ts",
     "update": "aws lambda update-function-code --zip-file fileb://lambda.zip --function-name hello",
     "zip": "zip -j lambda.zip dist/index.js",
     "db:seed": "tsx src/seeds/accounts.ts",

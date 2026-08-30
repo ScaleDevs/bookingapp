@@ -8,8 +8,9 @@ A pnpm + Turborepo monorepo for a sports club booking platform. It contains a Ne
 bookingapp/
 ├── apps/
 │   ├── web/          # Next.js frontend (package name: `web`)
-│   └── api/          # Hono + tRPC backend (package name: `api`)
+│   └── api/          # Hono + oRPC backend (package name: `api`)
 ├── packages/
+│   ├── api-contracts/       # Shared Valibot + oRPC contracts
 │   ├── eslint-config/       # Shared ESLint configs (@repo/eslint-config)
 │   └── typescript-config/   # Shared TypeScript configs (@repo/typescript-config)
 └── .github/workflows/       # CI deploy workflows
@@ -24,11 +25,11 @@ Location: `apps/web`
 |                  |                                         |
 | ---------------- | --------------------------------------- |
 | **Stack**        | Next.js, React, Tailwind CSS, shadcn/ui |
-| **State & data** | Zustand, TanStack Query, tRPC client    |
+| **State & data** | Zustand, TanStack Query, oRPC client    |
 | **Auth**         | better-auth                             |
 | **Deploy**       | SST (`sst.aws.Nextjs`) to AWS           |
 
-The frontend talks to the API over tRPC with end-to-end types imported from `apps/api/src/router`.
+The frontend talks to the API through the shared `@bookingapp/api-contracts` package using an oRPC client.
 
 Local dev runs on port **5173**.
 
@@ -38,7 +39,7 @@ Location: `apps/api`
 
 |               |                                                        |
 | ------------- | ------------------------------------------------------ |
-| **Stack**     | Hono, tRPC, Drizzle ORM                                |
+| **Stack**     | Hono, oRPC, Valibot, Drizzle ORM                       |
 | **Databases** | PostgreSQL (relational data), DynamoDB (via ElectroDB) |
 | **Auth**      | better-auth                                            |
 | **Deploy**    | SST (Lambda + API Gateway) to AWS                      |
@@ -49,6 +50,7 @@ Domain areas include organizations, offerings, schedules, bookings, customers, a
 
 - **`@repo/eslint-config`** — ESLint presets used across apps
 - **`@repo/typescript-config`** — Base `tsconfig` presets
+- **`@bookingapp/api-contracts`** — Valibot request/response schemas and oRPC/OpenAPI routes
 
 ## Prerequisites
 
@@ -153,7 +155,7 @@ These are configured as GitHub Actions secrets/variables per environment (`dev`,
 ## How the apps connect
 
 ```
-┌─────────────┐     tRPC (typed)      ┌─────────────┐
+┌─────────────┐     oRPC (typed)      ┌─────────────┐
 │  apps/web   │ ────────────────────► │  apps/api   │
 │  (Next.js)  │                       │   (Hono)    │
 └─────────────┘                       └──────┬──────┘

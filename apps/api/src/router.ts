@@ -3,6 +3,7 @@ import type { ApiContract } from '@bookingapp/api-contracts';
 import { contract } from '@bookingapp/api-contracts';
 
 import * as bookingAtomic from './services/bookings/atomic';
+import * as bookingOrchestration from './services/bookings/orchestration';
 import * as bookingQueries from './services/bookings/queries';
 import * as customerAtomic from './services/customers/atomic';
 import * as customerQueries from './services/customers/queries';
@@ -168,7 +169,7 @@ export const router = implementation.router({
       bookingQueries.getById(context.service, input.id).then((result) => result ?? null),
     ),
     create: protectedImplementation.bookings.create.handler(({ context, input }) =>
-      bookingAtomic.create(context.service, input),
+      bookingOrchestration.create(context.service, input),
     ),
     update: protectedImplementation.bookings.update.handler(({ context, input }) =>
       bookingAtomic.update(context.service, input.id, input.data),

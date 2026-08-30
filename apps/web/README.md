@@ -1,6 +1,6 @@
 # Web
 
-The Next.js frontend for the Sports Club booking platform. It serves the public site and operator dashboard (offerings, reservations, customers, blocked schedules, settings) and talks to `apps/api` over type-safe tRPC.
+The Next.js frontend for the Sports Club booking platform. It serves the public site and operator dashboard (offerings, reservations, customers, blocked schedules, settings) and talks to `apps/api` through the shared type-safe oRPC contracts.
 
 ### Main Stack
 
