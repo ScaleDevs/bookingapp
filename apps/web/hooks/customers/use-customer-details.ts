@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { mockCustomerDetails } from "./mock-data"
 import type { CustomerDetails, CustomerDetailsQueryState } from "./types"
@@ -8,41 +8,35 @@ import type { CustomerDetails, CustomerDetailsQueryState } from "./types"
 const DETAILS_DELAY = 400
 
 export function useCustomerDetails(
-  customerId: string | null,
+  customerId: string | null
 ): CustomerDetailsQueryState {
   const [data, setData] = useState<CustomerDetails | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(!!customerId)
   const [isError, setIsError] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   const [fetchId, setFetchId] = useState(0)
-  const customerIdRef = useRef(customerId)
+  const [trackedCustomerId, setTrackedCustomerId] = useState(customerId)
 
-  useEffect(() => {
-    customerIdRef.current = customerId
-  }, [customerId])
+  if (customerId !== trackedCustomerId) {
+    setTrackedCustomerId(customerId)
+    setData(null)
+    setIsError(false)
+    setError(null)
+    setIsLoading(!!customerId)
+  }
 
   const refetch = useCallback(() => {
-    if (!customerIdRef.current) return
+    if (!customerId) return
     setIsLoading(true)
     setFetchId((id) => id + 1)
-  }, [])
+  }, [customerId])
 
   useEffect(() => {
-    if (!customerId) {
-      setData(null)
-      setIsLoading(false)
-      setIsError(false)
-      setError(null)
-      return
-    }
+    if (!customerId) return
 
     let cancelled = false
 
     void (async () => {
-      setIsLoading(true)
-      setIsError(false)
-      setError(null)
-
       try {
         await new Promise((resolve) => setTimeout(resolve, DETAILS_DELAY))
 
@@ -56,6 +50,8 @@ export function useCustomerDetails(
         }
 
         setData(details)
+        setIsError(false)
+        setError(null)
       } catch (err) {
         if (cancelled) return
 

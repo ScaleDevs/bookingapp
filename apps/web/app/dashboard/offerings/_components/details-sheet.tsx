@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import {
@@ -36,10 +36,6 @@ function DetailsSheetContent({
   const { data: offering, isLoading } = useQuery(
     offeringClient.getById.queryOptions({ input: { id: offeringId } })
   )
-
-  useEffect(() => {
-    setActiveTab(defaultTab)
-  }, [defaultTab, offeringId])
 
   const handleEditSuccess = () => {
     setActiveTab("view")

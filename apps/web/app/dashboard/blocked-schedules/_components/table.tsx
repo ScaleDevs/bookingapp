@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
@@ -127,12 +127,14 @@ export function Table() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
   const [deleteTarget, setDeleteTarget] = useState<ListItem | null>(null)
+  const [prevFilters, setPrevFilters] = useState(filters)
+
+  if (filters !== prevFilters) {
+    setPrevFilters(filters)
+    setPage(1)
+  }
 
   const queryClient = useQueryClient()
-
-  useEffect(() => {
-    setPage(1)
-  }, [filters])
 
   const filterInput = filtersToListInput(filters)
 
