@@ -17,20 +17,32 @@ export interface OfferingScheduleListOptions {
   };
 }
 
-function createOfferingScheduleLogger(requestId: string | null | undefined, organizationId: string) {
+function createOfferingScheduleLogger(
+  requestId: string | null | undefined,
+  organizationId: string,
+) {
   return createLogger("OfferingScheduleService", {
     requestId: requestId ?? null,
     organizationId,
   });
 }
 
-async function verifyOfferingAccess(organizationId: string, offeringId: string) {
+async function verifyOfferingAccess(
+  organizationId: string,
+  offeringId: string,
+) {
   return db.query.offering.findFirst({
-    where: and(eq(offering.id, offeringId), eq(offering.organizationId, organizationId)),
+    where: and(
+      eq(offering.id, offeringId),
+      eq(offering.organizationId, organizationId),
+    ),
   });
 }
 
-export async function list({ requestId, organizationId }: BaseService, options: OfferingScheduleListOptions) {
+export async function list(
+  { requestId, organizationId }: BaseService,
+  options: OfferingScheduleListOptions,
+) {
   const logger = createOfferingScheduleLogger(requestId, organizationId);
   const { offeringId, page, pageSize, sortOrder } = options;
   const offset = (page - 1) * pageSize;
@@ -43,7 +55,9 @@ export async function list({ requestId, organizationId }: BaseService, options: 
   const conditions = [eq(offeringSchedule.offeringId, offeringId)];
 
   if (options.filters?.dayOfWeek !== undefined) {
-    conditions.push(eq(offeringSchedule.dayOfWeek, options.filters.dayOfWeek.toString()));
+    conditions.push(
+      eq(offeringSchedule.dayOfWeek, options.filters.dayOfWeek.toString()),
+    );
   }
 
   if (options.filters?.isActive !== undefined) {
@@ -56,7 +70,10 @@ export async function list({ requestId, organizationId }: BaseService, options: 
       ? [desc(offeringSchedule.createdAt), desc(offeringSchedule.id)]
       : [asc(offeringSchedule.createdAt), asc(offeringSchedule.id)];
 
-  const [countRow] = await db.select({ total: count() }).from(offeringSchedule).where(where);
+  const [countRow] = await db
+    .select({ total: count() })
+    .from(offeringSchedule)
+    .where(where);
   const total = countRow?.total ?? 0;
 
   const result = await db.query.offeringSchedule.findMany({
@@ -86,7 +103,10 @@ export async function list({ requestId, organizationId }: BaseService, options: 
   };
 }
 
-export async function getById({ requestId, organizationId }: BaseService, id: string) {
+export async function getById(
+  { requestId, organizationId }: BaseService,
+  id: string,
+) {
   const logger = createOfferingScheduleLogger(requestId, organizationId);
 
   const result = await db.query.offeringSchedule.findFirst({

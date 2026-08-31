@@ -15,14 +15,20 @@ export interface OfferingListOptions {
   };
 }
 
-function createOfferingLogger(requestId: string | null | undefined, organizationId: string) {
+function createOfferingLogger(
+  requestId: string | null | undefined,
+  organizationId: string,
+) {
   return createLogger("OfferingService", {
     requestId: requestId ?? null,
     organizationId,
   });
 }
 
-export async function list({ requestId, organizationId }: BaseService, options: OfferingListOptions) {
+export async function list(
+  { requestId, organizationId }: BaseService,
+  options: OfferingListOptions,
+) {
   const logger = createOfferingLogger(requestId, organizationId);
   const { page, pageSize, sortOrder } = options;
   const offset = (page - 1) * pageSize;
@@ -43,7 +49,10 @@ export async function list({ requestId, organizationId }: BaseService, options: 
       ? [desc(offering.createdAt), desc(offering.id)]
       : [asc(offering.createdAt), asc(offering.id)];
 
-  const [countRow] = await db.select({ total: count() }).from(offering).where(where);
+  const [countRow] = await db
+    .select({ total: count() })
+    .from(offering)
+    .where(where);
   const total = countRow?.total ?? 0;
 
   const result = await db.query.offering.findMany({
@@ -72,11 +81,17 @@ export async function list({ requestId, organizationId }: BaseService, options: 
   };
 }
 
-export async function getById({ requestId, organizationId }: BaseService, id: string) {
+export async function getById(
+  { requestId, organizationId }: BaseService,
+  id: string,
+) {
   const logger = createOfferingLogger(requestId, organizationId);
 
   const result = await db.query.offering.findFirst({
-    where: and(eq(offering.organizationId, organizationId), eq(offering.id, id)),
+    where: and(
+      eq(offering.organizationId, organizationId),
+      eq(offering.id, id),
+    ),
   });
 
   logger.info("Offering retrieved successfully");
@@ -84,11 +99,17 @@ export async function getById({ requestId, organizationId }: BaseService, id: st
   return result;
 }
 
-export async function getSelectOptions({ requestId, organizationId }: BaseService) {
+export async function getSelectOptions({
+  requestId,
+  organizationId,
+}: BaseService) {
   const logger = createOfferingLogger(requestId, organizationId);
 
   const result = await db.query.offering.findMany({
-    where: and(eq(offering.organizationId, organizationId), eq(offering.isActive, true)),
+    where: and(
+      eq(offering.organizationId, organizationId),
+      eq(offering.isActive, true),
+    ),
     orderBy: [asc(offering.name)],
     columns: {
       id: true,
