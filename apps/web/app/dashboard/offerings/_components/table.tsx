@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import {
   IconDotsVertical,
@@ -32,11 +33,14 @@ import {
   TablePaginationV1,
   TableV1,
 } from "@/components/shared/table-v1"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { offerings } from "@bookingapp/api-contracts"
+
+import type { ContractOutputs } from "@/lib/contract-types"
+import { offeringClient } from "@/lib/orpc/client"
 import { cn } from "@/lib/utils"
 import { EmptyState } from "./empty-state"
 
-type ListItem = TRPCOutputs["offerings"]["list"]["items"][number]
+type ListItem = ContractOutputs<typeof offerings>["list"]["items"][number]
 
 function formatDuration(minutes: number) {
   if (minutes < 60) {
@@ -72,7 +76,7 @@ const createColumns = ({
     cell: ({ row }) => (
       <button
         onClick={() => onViewDetailsPage(row.original.id)}
-        className="max-w-[200px] truncate font-medium text-left hover:underline focus:underline focus:outline-none"
+        className="max-w-[200px] truncate text-left font-medium hover:underline focus:underline focus:outline-none"
       >
         {row.getValue("name")}
       </button>
@@ -171,27 +175,35 @@ export function Table() {
   const router = useRouter()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
+  const [prevFilters, setPrevFilters] = useState(filters)
 
-  const utils = trpc.useUtils()
-
-  useEffect(() => {
+  if (filters !== prevFilters) {
+    setPrevFilters(filters)
     setPage(1)
-  }, [filters])
+  }
+
+  const queryClient = useQueryClient()
 
   const filterInput = filtersToListInput(filters)
 
-  const offeringsQuery = trpc.offerings.list.useQuery({
-    page,
-    pageSize,
-    sortOrder: "desc",
-    filters: filterInput,
-  })
+  const offeringsQuery = useQuery(
+    offeringClient.list.queryOptions({
+      input: {
+        page,
+        pageSize,
+        sortOrder: "desc",
+        filters: filterInput,
+      },
+    })
+  )
 
-  const toggleStatusMutation = trpc.offerings.toggleStatus.useMutation({
-    onSuccess: () => {
-      void utils.offerings.list.invalidate()
-    },
-  })
+  const toggleStatusMutation = useMutation(
+    offeringClient.toggleStatus.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: offeringClient.key() })
+      },
+    })
+  )
 
   const list = offeringsQuery.data
   const tableRows: ListItem[] = list?.items ?? []

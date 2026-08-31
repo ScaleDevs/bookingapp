@@ -6,13 +6,15 @@ import { useTheme } from "next-themes"
 
 import { Switch } from "@/components/ui/switch"
 
+const emptySubscribe = () => () => {}
+
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = React.useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  )
 
   const isDark = resolvedTheme === "dark"
 

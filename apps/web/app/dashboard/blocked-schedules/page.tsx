@@ -1,15 +1,17 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 
-import { getTRPCQueryUtils } from "@/lib/trpc/server"
+import { getORPCQueryUtils } from "@/lib/orpc/server"
 import { FiltersProvider } from "@/app/dashboard/blocked-schedules/_providers/filters-context"
 import { Header } from "@/app/dashboard/blocked-schedules/_components/header"
 import { Table } from "@/app/dashboard/blocked-schedules/_components/table"
 import { Suspense } from "react"
 
 const HydratedHeaderAndFilters = async () => {
-  const { trpc, queryClient } = await getTRPCQueryUtils()
+  const { offeringClient, queryClient } = await getORPCQueryUtils()
 
-  await trpc.offerings.getSelectOptions.prefetch()
+  await queryClient.prefetchQuery(
+    offeringClient.getSelectOptions.queryOptions({ input: {} })
+  )
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

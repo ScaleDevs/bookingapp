@@ -3,7 +3,7 @@ import { Geist_Mono, Manrope, Noto_Sans } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import { TRPCProvider } from "@/components/trpc-provider"
+import { QueryProvider } from "@/components/query-provider"
 import { cn } from "@/lib/utils"
 
 const notoSansHeading = Noto_Sans({
@@ -37,7 +37,7 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <TRPCProvider>{children}</TRPCProvider>
+          <QueryProvider>{children}</QueryProvider>
           <Toaster />
         </ThemeProvider>
       </body>

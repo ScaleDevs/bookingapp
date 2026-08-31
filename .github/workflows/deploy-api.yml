@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "apps/api/**"
+      - "packages/api-contracts/**"
   workflow_dispatch:
     inputs:
       environment:

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
@@ -29,14 +30,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatTime12Hour } from "@/lib/format-time"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { offeringSchedules } from "@bookingapp/api-contracts"
+
+import type { ContractOutputs } from "@/lib/contract-types"
+import { offeringScheduleClient } from "@/lib/orpc/client"
 import { cn } from "@/lib/utils"
 import {
   EditScheduleSheet,
   editScheduleSheetHandle,
 } from "./edit-schedule-sheet"
 
-type ListItem = TRPCOutputs["offeringSchedules"]["list"]["items"][number]
+type ListItem = ContractOutputs<typeof offeringSchedules>["list"]["items"][number]
 
 type SchedulesTableProps = {
   offeringId: string
@@ -137,25 +141,24 @@ export function SchedulesTable({ offeringId }: SchedulesTableProps) {
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
   const [deleteTarget, setDeleteTarget] = useState<ListItem | null>(null)
 
-  const utils = trpc.useUtils()
+  const queryClient = useQueryClient()
 
-  const schedulesQuery = trpc.offeringSchedules.list.useQuery({
-    offeringId,
-    page,
-    pageSize,
-    sortOrder: "asc",
-  })
+  const schedulesQuery = useQuery(
+    offeringScheduleClient.list.queryOptions({
+      input: { offeringId, page, pageSize, sortOrder: "asc" },
+    })
+  )
 
-  const deleteMutation = trpc.offeringSchedules.delete.useMutation({
+  const deleteMutation = useMutation(offeringScheduleClient.delete.mutationOptions({
     onSuccess: () => {
-      void utils.offeringSchedules.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringScheduleClient.key() })
       toast.success("Schedule deleted successfully")
       setDeleteTarget(null)
     },
     onError: (error) => {
       toast.error(error.message)
     },
-  })
+  }))
 
   const list = schedulesQuery.data
   const tableRows: ListItem[] = list?.items ?? []

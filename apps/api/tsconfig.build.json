@@ -1,0 +1,24 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src"],
+  "references": [{ "path": "../../packages/api-contracts" }],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".turbo",
+    "coverage",
+    ".sst",
+    ".tsc-output",
+    "src/create-app.ts",
+    "src/server.ts",
+    "src/routes/**/lambda.ts"
+  ],
+  "compilerOptions": {
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./.tsc-output",
+    "rootDir": "./src"
+  }
+}

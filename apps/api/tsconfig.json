@@ -1,4 +1,7 @@
 {
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "build", ".turbo", "coverage", ".sst", ".tsc-output"],
+  "references": [{ "path": "../../packages/api-contracts" }],
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
@@ -8,11 +11,12 @@
     "types": ["node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@db": ["./src/db/index.ts"],
       "@db/*": ["./src/db/*"],
+      "@errors": ["./src/errors/index.ts"],
+      "@errors/*": ["./src/errors/*"],
       "@services/*": ["./src/services/*"],
       "@utils/*": ["./src/utils/*"]
     }

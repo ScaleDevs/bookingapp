@@ -7,7 +7,7 @@
 
 export type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
 
-/** Optional request/org context appended to the source prefix (e.g. from tRPC `ctx`). */
+/** Optional request/org context appended to the service log prefix. */
 export type LoggerContext = {
   requestId?: string | null;
   organizationId?: string | null;

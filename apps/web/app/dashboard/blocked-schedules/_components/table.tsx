@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
@@ -34,9 +35,12 @@ import {
   TablePaginationV1,
   TableV1,
 } from "@/components/shared/table-v1"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { blockedTimes } from "@bookingapp/api-contracts"
 
-type ListItem = TRPCOutputs["blockedTimes"]["list"]["items"][number]
+import type { ContractOutputs } from "@/lib/contract-types"
+import { blockedTimeClient } from "@/lib/orpc/client"
+
+type ListItem = ContractOutputs<typeof blockedTimes>["list"]["items"][number]
 
 function formatDateTime(date: Date | string) {
   const d = typeof date === "string" ? new Date(date) : date
@@ -123,38 +127,40 @@ export function Table() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
   const [deleteTarget, setDeleteTarget] = useState<ListItem | null>(null)
+  const [prevFilters, setPrevFilters] = useState(filters)
 
-  const utils = trpc.useUtils()
-
-  useEffect(() => {
+  if (filters !== prevFilters) {
+    setPrevFilters(filters)
     setPage(1)
-  }, [filters])
+  }
+
+  const queryClient = useQueryClient()
 
   const filterInput = filtersToListInput(filters)
 
-  const blockedTimesQuery = trpc.blockedTimes.list.useQuery(
-    {
-      offeringId: filters.offeringId!,
-      page,
-      pageSize,
-      sortOrder: "desc",
-      filters: filterInput,
-    },
-    {
+  const blockedTimesQuery = useQuery(
+    blockedTimeClient.list.queryOptions({
+      input: {
+        offeringId: filters.offeringId!,
+        page,
+        pageSize,
+        sortOrder: "desc",
+        filters: filterInput,
+      },
       enabled: !!filters.offeringId,
-    }
+    })
   )
 
-  const deleteMutation = trpc.blockedTimes.delete.useMutation({
+  const deleteMutation = useMutation(blockedTimeClient.delete.mutationOptions({
     onSuccess: () => {
-      void utils.blockedTimes.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: blockedTimeClient.key() })
       toast.success("Blocked time deleted successfully")
       setDeleteTarget(null)
     },
     onError: (error) => {
       toast.error(error.message)
     },
-  })
+  }))
 
   const list = blockedTimesQuery.data
   const tableRows: ListItem[] = list?.items ?? []

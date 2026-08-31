@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { IconPlus } from "@tabler/icons-react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -23,7 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { trpc } from "@/lib/trpc/client"
+import { offeringScheduleClient } from "@/lib/orpc/client"
 
 const createScheduleSchema = v.pipe(
   v.object({
@@ -87,12 +88,12 @@ type CreateScheduleSheetProps = {
 
 export function CreateScheduleSheet({ offeringId }: CreateScheduleSheetProps) {
   const [open, setOpen] = useState(false)
-  const utils = trpc.useUtils()
-  const createSchedule = trpc.offeringSchedules.create.useMutation({
+  const queryClient = useQueryClient()
+  const createSchedule = useMutation(offeringScheduleClient.create.mutationOptions({
     onSuccess: () => {
-      void utils.offeringSchedules.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringScheduleClient.key() })
     },
-  })
+  }))
 
   const form = useForm<CreateScheduleFormValues>({
     resolver: valibotResolver(

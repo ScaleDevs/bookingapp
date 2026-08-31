@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -22,9 +23,12 @@ import {
   SheetTitle,
   createSheetHandle,
 } from "@/components/ui/sheet"
-import { trpc, type TRPCOutputs } from "@/lib/trpc/client"
+import { offeringSchedules } from "@bookingapp/api-contracts"
 
-type Schedule = TRPCOutputs["offeringSchedules"]["list"]["items"][number]
+import type { ContractOutputs } from "@/lib/contract-types"
+import { offeringScheduleClient } from "@/lib/orpc/client"
+
+type Schedule = ContractOutputs<typeof offeringSchedules>["list"]["items"][number]
 
 export const editScheduleSheetHandle = createSheetHandle<Schedule>()
 
@@ -81,12 +85,12 @@ type EditScheduleSheetContentProps = {
 }
 
 function EditScheduleSheetContent({ schedule }: EditScheduleSheetContentProps) {
-  const utils = trpc.useUtils()
-  const updateSchedule = trpc.offeringSchedules.update.useMutation({
+  const queryClient = useQueryClient()
+  const updateSchedule = useMutation(offeringScheduleClient.update.mutationOptions({
     onSuccess: () => {
-      void utils.offeringSchedules.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringScheduleClient.key() })
     },
-  })
+  }))
 
   const form = useForm<EditScheduleFormValues>({
     resolver: valibotResolver(

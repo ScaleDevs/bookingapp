@@ -1,8 +1,10 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import type { TRPCOutputs } from "@/lib/trpc/client"
+import { offerings } from "@bookingapp/api-contracts"
 
-type Offering = TRPCOutputs["offerings"]["getById"]
+import type { ContractOutputs } from "@/lib/contract-types"
+
+type Offering = ContractOutputs<typeof offerings>["getById"]
 
 function formatDuration(minutes: number) {
   if (minutes < 60) {
@@ -20,7 +22,7 @@ function formatDuration(minutes: number) {
 }
 
 type ViewProps = {
-  offering: Offering
+  offering: Offering | undefined
   isLoading: boolean
 }
 

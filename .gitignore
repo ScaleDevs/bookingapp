@@ -58,3 +58,4 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+.tsc-output/

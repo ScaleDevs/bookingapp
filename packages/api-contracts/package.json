@@ -1,0 +1,19 @@
+{
+  "name": "@bookingapp/api-contracts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "build:types": "tsc --build --force",
+    "check-types": "tsc --build --force"
+  },
+  "dependencies": {
+    "@orpc/contract": "2.0.0-beta.18",
+    "@orpc/openapi": "2.0.0-beta.18",
+    "valibot": "^1.4.2"
+  }
+}

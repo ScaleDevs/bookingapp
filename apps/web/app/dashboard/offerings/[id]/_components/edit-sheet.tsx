@@ -7,9 +7,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { useQuery } from "@tanstack/react-query"
 import { Edit } from "@/app/dashboard/offerings/_components/edit"
 import { useEditSheet } from "../_provider/edit-sheet-provider"
-import { trpc } from "@/lib/trpc/client"
+import { offeringClient } from "@/lib/orpc/client"
 
 type EditSheetProps = {
   offeringId: string
@@ -19,9 +20,9 @@ export function EditSheet({ offeringId }: EditSheetProps) {
   const { isEditSheetOpen, setIsEditSheetOpen, closeEditSheet } =
     useEditSheet()
 
-  const { data: offering } = trpc.offerings.getById.useQuery({
-    id: offeringId,
-  })
+  const { data: offering } = useQuery(
+    offeringClient.getById.queryOptions({ input: { id: offeringId } })
+  )
 
   const handleEditSuccess = () => {
     closeEditSheet()
