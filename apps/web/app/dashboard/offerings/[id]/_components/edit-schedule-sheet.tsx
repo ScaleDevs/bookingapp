@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -23,10 +23,12 @@ import {
   SheetTitle,
   createSheetHandle,
 } from "@/components/ui/sheet"
-import { orpc, type APIOutputs } from "@/lib/orpc/client"
-import { useORPCUtils } from "@/lib/orpc/utils"
+import { offeringSchedules } from "@bookingapp/api-contracts"
 
-type Schedule = APIOutputs["offeringSchedules"]["list"]["items"][number]
+import type { ContractOutputs } from "@/lib/contract-types"
+import { offeringScheduleClient } from "@/lib/orpc/client"
+
+type Schedule = ContractOutputs<typeof offeringSchedules>["list"]["items"][number]
 
 export const editScheduleSheetHandle = createSheetHandle<Schedule>()
 
@@ -83,10 +85,10 @@ type EditScheduleSheetContentProps = {
 }
 
 function EditScheduleSheetContent({ schedule }: EditScheduleSheetContentProps) {
-  const utils = useORPCUtils()
-  const updateSchedule = useMutation(orpc.offeringSchedules.update.mutationOptions({
+  const queryClient = useQueryClient()
+  const updateSchedule = useMutation(offeringScheduleClient.update.mutationOptions({
     onSuccess: () => {
-      void utils.offeringSchedules.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringScheduleClient.key() })
     },
   }))
 

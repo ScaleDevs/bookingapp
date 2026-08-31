@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { IconPlus } from "@tabler/icons-react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -24,8 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { orpc } from "@/lib/orpc/client"
-import { useORPCUtils } from "@/lib/orpc/utils"
+import { offeringScheduleClient } from "@/lib/orpc/client"
 
 const createScheduleSchema = v.pipe(
   v.object({
@@ -89,10 +88,10 @@ type CreateScheduleSheetProps = {
 
 export function CreateScheduleSheet({ offeringId }: CreateScheduleSheetProps) {
   const [open, setOpen] = useState(false)
-  const utils = useORPCUtils()
-  const createSchedule = useMutation(orpc.offeringSchedules.create.mutationOptions({
+  const queryClient = useQueryClient()
+  const createSchedule = useMutation(offeringScheduleClient.create.mutationOptions({
     onSuccess: () => {
-      void utils.offeringSchedules.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringScheduleClient.key() })
     },
   }))
 

@@ -21,7 +21,7 @@ import { makeQueryClient } from "./make-query-client";
 
 export const getQueryClient = cache(makeQueryClient);
 
-export const getORPCServerClient = cache(async () => {
+export const getORPCQueryUtils = cache(async () => {
   const cookieStore = await cookies();
   const contractRef = {} as RouterContract;
   const apiOrigin = getBaseApiUrl();
@@ -44,22 +44,13 @@ export const getORPCServerClient = cache(async () => {
   );
 
   return {
-    offerings: createUtils(offerings),
-    offeringSchedules: createUtils(offeringSchedules),
-    blockedTimes: createUtils(blockedTimes),
-    customers: createUtils(customers),
-    bookings: createUtils(bookings),
-    organizations: createUtils(organizations),
-    system: createUtils(system),
-  };
-});
-
-export const getORPCQueryUtils = cache(async () => {
-  const queryClient = getQueryClient();
-  const orpc = await getORPCServerClient();
-
-  return {
-    orpc,
-    queryClient,
+    queryClient: getQueryClient(),
+    offeringClient: createUtils(offerings),
+    offeringScheduleClient: createUtils(offeringSchedules),
+    blockedTimeClient: createUtils(blockedTimes),
+    customerClient: createUtils(customers),
+    bookingClient: createUtils(bookings),
+    organizationClient: createUtils(organizations),
+    systemClient: createUtils(system),
   };
 });

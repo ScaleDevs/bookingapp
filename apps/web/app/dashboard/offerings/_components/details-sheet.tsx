@@ -12,7 +12,7 @@ import {
   createSheetHandle,
 } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { orpc } from "@/lib/orpc/client"
+import { offeringClient } from "@/lib/orpc/client"
 import { View } from "./view"
 import { Edit } from "./edit"
 
@@ -34,7 +34,7 @@ function DetailsSheetContent({
 }: DetailsSheetContentProps) {
   const [activeTab, setActiveTab] = useState(defaultTab)
   const { data: offering, isLoading } = useQuery(
-    orpc.offerings.getById.queryOptions({ input: { id: offeringId } })
+    offeringClient.getById.queryOptions({ input: { id: offeringId } })
   )
 
   useEffect(() => {

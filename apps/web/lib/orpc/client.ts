@@ -13,7 +13,6 @@ import {
 } from "@bookingapp/api-contracts";
 
 import { getBaseApiUrl } from "@/lib/constant";
-import type { ContractOutputs } from "./contract-types";
 
 const contractRef = {} as RouterContract;
 const apiOrigin = getBaseApiUrl();
@@ -45,27 +44,3 @@ export const customerClient = createUtils(customers);
 export const bookingClient = createUtils(bookings);
 export const organizationClient = createUtils(organizations);
 export const systemClient = createUtils(system);
-
-/**
- * Nested client used by existing Next.js call sites. Domain clients above
- * match the KardOps `createUtils(contract)` pattern and remain the source
- * of truth.
- */
-export const orpc = {
-  offerings: offeringClient,
-  offeringSchedules: offeringScheduleClient,
-  blockedTimes: blockedTimeClient,
-  customers: customerClient,
-  bookings: bookingClient,
-  organizations: organizationClient,
-  system: systemClient,
-};
-
-export type APIOutputs = {
-  offerings: ContractOutputs<typeof offerings>;
-  offeringSchedules: ContractOutputs<typeof offeringSchedules>;
-  blockedTimes: ContractOutputs<typeof blockedTimes>;
-  customers: ContractOutputs<typeof customers>;
-  bookings: ContractOutputs<typeof bookings>;
-  organizations: ContractOutputs<typeof organizations>;
-};

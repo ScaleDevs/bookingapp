@@ -31,11 +31,11 @@ export async function AuthGuard({
     redirect("/onboarding")
   }
 
-  const { orpc, queryClient } = await getORPCQueryUtils()
+  const { organizationClient, queryClient } = await getORPCQueryUtils()
 
   if (session.session.activeOrganizationId) {
     await queryClient.prefetchQuery(
-      orpc.organizations.get.queryOptions({ input: {} })
+      organizationClient.get.queryOptions({ input: {} })
     )
   }
 

@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { Button } from "@/components/ui/button"
 import { View } from "@/app/dashboard/offerings/_components/view"
-import { orpc } from "@/lib/orpc/client"
+import { offeringClient } from "@/lib/orpc/client"
 import { useEditSheet } from "../_provider/edit-sheet-provider"
 
 type DetailsSectionProps = {
@@ -18,7 +18,7 @@ export function DetailsSection({ offeringId }: DetailsSectionProps) {
   const { openEditSheet } = useEditSheet()
 
   const { data: offering, isLoading } = useQuery(
-    orpc.offerings.getById.queryOptions({ input: { id: offeringId } })
+    offeringClient.getById.queryOptions({ input: { id: offeringId } })
   )
 
   const handleBack = () => {

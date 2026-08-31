@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
@@ -30,15 +30,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatTime12Hour } from "@/lib/format-time"
-import { orpc, type APIOutputs } from "@/lib/orpc/client"
-import { useORPCUtils } from "@/lib/orpc/utils"
+import { offeringSchedules } from "@bookingapp/api-contracts"
+
+import type { ContractOutputs } from "@/lib/contract-types"
+import { offeringScheduleClient } from "@/lib/orpc/client"
 import { cn } from "@/lib/utils"
 import {
   EditScheduleSheet,
   editScheduleSheetHandle,
 } from "./edit-schedule-sheet"
 
-type ListItem = APIOutputs["offeringSchedules"]["list"]["items"][number]
+type ListItem = ContractOutputs<typeof offeringSchedules>["list"]["items"][number]
 
 type SchedulesTableProps = {
   offeringId: string
@@ -139,17 +141,17 @@ export function SchedulesTable({ offeringId }: SchedulesTableProps) {
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
   const [deleteTarget, setDeleteTarget] = useState<ListItem | null>(null)
 
-  const utils = useORPCUtils()
+  const queryClient = useQueryClient()
 
   const schedulesQuery = useQuery(
-    orpc.offeringSchedules.list.queryOptions({
+    offeringScheduleClient.list.queryOptions({
       input: { offeringId, page, pageSize, sortOrder: "asc" },
     })
   )
 
-  const deleteMutation = useMutation(orpc.offeringSchedules.delete.mutationOptions({
+  const deleteMutation = useMutation(offeringScheduleClient.delete.mutationOptions({
     onSuccess: () => {
-      void utils.offeringSchedules.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringScheduleClient.key() })
       toast.success("Schedule deleted successfully")
       setDeleteTarget(null)
     },

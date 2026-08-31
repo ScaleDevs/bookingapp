@@ -7,10 +7,10 @@ import { Table } from "@/app/dashboard/blocked-schedules/_components/table"
 import { Suspense } from "react"
 
 const HydratedHeaderAndFilters = async () => {
-  const { orpc, queryClient } = await getORPCQueryUtils()
+  const { offeringClient, queryClient } = await getORPCQueryUtils()
 
   await queryClient.prefetchQuery(
-    orpc.offerings.getSelectOptions.queryOptions({ input: {} })
+    offeringClient.getSelectOptions.queryOptions({ input: {} })
   )
 
   return (

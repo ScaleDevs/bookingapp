@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { type ColumnDef } from "@tanstack/react-table"
 import {
   IconDotsVertical,
@@ -33,12 +33,14 @@ import {
   TablePaginationV1,
   TableV1,
 } from "@/components/shared/table-v1"
-import { orpc, type APIOutputs } from "@/lib/orpc/client"
-import { useORPCUtils } from "@/lib/orpc/utils"
+import { offerings } from "@bookingapp/api-contracts"
+
+import type { ContractOutputs } from "@/lib/contract-types"
+import { offeringClient } from "@/lib/orpc/client"
 import { cn } from "@/lib/utils"
 import { EmptyState } from "./empty-state"
 
-type ListItem = APIOutputs["offerings"]["list"]["items"][number]
+type ListItem = ContractOutputs<typeof offerings>["list"]["items"][number]
 
 function formatDuration(minutes: number) {
   if (minutes < 60) {
@@ -74,7 +76,7 @@ const createColumns = ({
     cell: ({ row }) => (
       <button
         onClick={() => onViewDetailsPage(row.original.id)}
-        className="max-w-[200px] truncate font-medium text-left hover:underline focus:underline focus:outline-none"
+        className="max-w-[200px] truncate text-left font-medium hover:underline focus:underline focus:outline-none"
       >
         {row.getValue("name")}
       </button>
@@ -174,7 +176,7 @@ export function Table() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_TABLE_V1_PAGE_SIZE)
 
-  const utils = useORPCUtils()
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     setPage(1)
@@ -183,7 +185,7 @@ export function Table() {
   const filterInput = filtersToListInput(filters)
 
   const offeringsQuery = useQuery(
-    orpc.offerings.list.queryOptions({
+    offeringClient.list.queryOptions({
       input: {
         page,
         pageSize,
@@ -193,11 +195,13 @@ export function Table() {
     })
   )
 
-  const toggleStatusMutation = useMutation(orpc.offerings.toggleStatus.mutationOptions({
-    onSuccess: () => {
-      void utils.offerings.list.invalidate()
-    },
-  }))
+  const toggleStatusMutation = useMutation(
+    offeringClient.toggleStatus.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: offeringClient.key() })
+      },
+    })
+  )
 
   const list = offeringsQuery.data
   const tableRows: ListItem[] = list?.items ?? []

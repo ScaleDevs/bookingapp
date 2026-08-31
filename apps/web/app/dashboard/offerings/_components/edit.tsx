@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -15,10 +15,12 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { SheetFooter } from "@/components/ui/sheet"
-import { orpc, type APIOutputs } from "@/lib/orpc/client"
-import { useORPCUtils } from "@/lib/orpc/utils"
+import { offerings } from "@bookingapp/api-contracts"
 
-type Offering = APIOutputs["offerings"]["getById"]
+import type { ContractOutputs } from "@/lib/contract-types"
+import { offeringClient } from "@/lib/orpc/client"
+
+type Offering = ContractOutputs<typeof offerings>["getById"]
 
 const updateOfferingSchema = v.object({
   name: v.pipe(
@@ -69,11 +71,10 @@ export function Edit({
   onSuccess,
   onCancel,
 }: EditProps) {
-  const utils = useORPCUtils()
-  const updateOffering = useMutation(orpc.offerings.update.mutationOptions({
+  const queryClient = useQueryClient()
+  const updateOffering = useMutation(offeringClient.update.mutationOptions({
     onSuccess: () => {
-      void utils.offerings.list.invalidate()
-      void utils.offerings.getById.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringClient.key() })
     },
   }))
 

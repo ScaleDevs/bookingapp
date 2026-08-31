@@ -50,7 +50,7 @@ Tenant scope comes from `context.service.organizationId` (Better Auth active org
 - [ ] Service: queries.ts, atomic.ts [, orchestration.ts]
 - [ ] Route: apps/api/src/routes/<camelName>/{index,router,lambda}.ts
 - [ ] Register: architecture/manifest.ts, routes/registry.ts, routes/openapi-router.ts
-- [ ] Web: consume via apps/web/lib/orpc/client.ts (`orpc.<domain>` or `createUtils`)
+- [ ] Web: consume via named clients in apps/web/lib/orpc/client.ts (`offeringClient.list.queryOptions`, etc.)
 ```
 
 Infra Lambdas are derived from `DOMAIN_MANIFEST` — do not hand-edit SST routes. Route folder name **must** match the manifest key (`src/routes/${manifestKey}/lambda.handler`).

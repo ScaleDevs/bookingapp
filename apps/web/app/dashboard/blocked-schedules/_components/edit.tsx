@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { valibotResolver } from "@hookform/resolvers/valibot"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -14,10 +14,12 @@ import {
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { SheetFooter } from "@/components/ui/sheet"
-import { orpc, type APIOutputs } from "@/lib/orpc/client"
-import { useORPCUtils } from "@/lib/orpc/utils"
+import { blockedTimes } from "@bookingapp/api-contracts"
 
-type BlockedTime = APIOutputs["blockedTimes"]["list"]["items"][number]
+import type { ContractOutputs } from "@/lib/contract-types"
+import { blockedTimeClient } from "@/lib/orpc/client"
+
+type BlockedTime = ContractOutputs<typeof blockedTimes>["list"]["items"][number]
 
 const updateBlockedTimeSchema = v.object({
   startsAt: v.pipe(
@@ -57,10 +59,10 @@ export function Edit({
   onSuccess,
   onCancel,
 }: EditProps) {
-  const utils = useORPCUtils()
-  const updateBlockedTime = useMutation(orpc.blockedTimes.update.mutationOptions({
+  const queryClient = useQueryClient()
+  const updateBlockedTime = useMutation(blockedTimeClient.update.mutationOptions({
     onSuccess: () => {
-      void utils.blockedTimes.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: blockedTimeClient.key() })
     },
   }))
 

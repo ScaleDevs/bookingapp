@@ -28,7 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { orpc } from "@/lib/orpc/client"
+import { organizationClient } from "@/lib/orpc/client"
 
 const data = {
   user: {
@@ -88,7 +88,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: organization } = useQuery(
-    orpc.organizations.get.queryOptions({ input: {} })
+    organizationClient.get.queryOptions({ input: {} })
   )
 
   return (

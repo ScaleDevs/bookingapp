@@ -8,10 +8,12 @@ import {
   SheetTitle,
   createSheetHandle,
 } from "@/components/ui/sheet"
-import { type APIOutputs } from "@/lib/orpc/client"
+import { blockedTimes } from "@bookingapp/api-contracts"
+
+import type { ContractOutputs } from "@/lib/contract-types"
 import { Edit } from "./edit"
 
-type BlockedTime = APIOutputs["blockedTimes"]["list"]["items"][number]
+type BlockedTime = ContractOutputs<typeof blockedTimes>["list"]["items"][number]
 
 export const detailsSheetHandle = createSheetHandle<BlockedTime>()
 

@@ -10,7 +10,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { Edit } from "@/app/dashboard/offerings/_components/edit"
 import { useEditSheet } from "../_provider/edit-sheet-provider"
-import { orpc } from "@/lib/orpc/client"
+import { offeringClient } from "@/lib/orpc/client"
 
 type EditSheetProps = {
   offeringId: string
@@ -21,7 +21,7 @@ export function EditSheet({ offeringId }: EditSheetProps) {
     useEditSheet()
 
   const { data: offering } = useQuery(
-    orpc.offerings.getById.queryOptions({ input: { id: offeringId } })
+    offeringClient.getById.queryOptions({ input: { id: offeringId } })
   )
 
   const handleEditSuccess = () => {

@@ -4,16 +4,31 @@ Keep Next.js App Router, existing routes, components, forms, and UX. Do not migr
 
 ## oRPC client
 
-Clients are created in `apps/web/lib/orpc/client.ts` with `OpenAPILink` against `/api` and `createUtils(contract)`. Existing pages use the nested `orpc` object:
+Named clients live in `apps/web/lib/orpc/client.ts` (`OpenAPILink` against `/api`, `createUtils(contract)`). Call them directly — do not wrap them in a nested `orpc` object.
 
 ```ts
-orpc.offerings.list.queryOptions({ input: { page, pageSize, sortOrder: "desc" } })
-orpc.offerings.create.mutationOptions()
+import { offeringClient } from "@/lib/orpc/client"
+
+useQuery(offeringClient.list.queryOptions({ input: { page, pageSize, sortOrder: "desc" } }))
+useMutation(offeringClient.create.mutationOptions())
 ```
 
-Server-component prefetching uses `getORPCQueryUtils` from `apps/web/lib/orpc/server.ts` and forwards the Better Auth cookie.
+Types come from the contract, not a combined `APIOutputs` map:
 
-Invalidate with `useORPCUtils` or `queryClient.invalidateQueries({ queryKey: orpc.offerings.list.key() })`.
+```ts
+import { offerings } from "@bookingapp/api-contracts"
+import type { ContractOutputs } from "@/lib/contract-types"
+
+type ListItem = ContractOutputs<typeof offerings>["list"]["items"][number]
+```
+
+Invalidate the whole domain client after mutations:
+
+```ts
+void queryClient.invalidateQueries({ queryKey: offeringClient.key() })
+```
+
+Server-component prefetching uses `getORPCQueryUtils` from `apps/web/lib/orpc/server.ts` (cookie-forwarding OpenAPILink) and the same named clients.
 
 Keep form-only validation local when it provides UI-specific messages; API validation remains authoritative in the shared Valibot contracts.
 

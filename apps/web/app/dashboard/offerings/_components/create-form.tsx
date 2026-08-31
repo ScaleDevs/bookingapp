@@ -1,7 +1,7 @@
 "use client"
 
 import { valibotResolver } from "@hookform/resolvers/valibot"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { FormProvider, Resolver, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as v from "valibot"
@@ -13,8 +13,7 @@ import {
   FormTextarea,
 } from "@/components/forms"
 import { Button } from "@/components/ui/button"
-import { orpc } from "@/lib/orpc/client"
-import { useORPCUtils } from "@/lib/orpc/utils"
+import { offeringClient } from "@/lib/orpc/client"
 import {
   Sheet,
   SheetContent,
@@ -78,10 +77,10 @@ export function CreateForm({
   open,
   onOpenChange,
 }: CreateFormProps) {
-  const utils = useORPCUtils()
-  const createOffering = useMutation(orpc.offerings.create.mutationOptions({
+  const queryClient = useQueryClient()
+  const createOffering = useMutation(offeringClient.create.mutationOptions({
     onSuccess: () => {
-      void utils.offerings.list.invalidate()
+      void queryClient.invalidateQueries({ queryKey: offeringClient.key() })
     },
   }))
 

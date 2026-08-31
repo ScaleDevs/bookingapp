@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select"
 import type { TableFilters } from "@/app/dashboard/blocked-schedules/_providers/filters-context"
 import { cn } from "@/lib/utils"
-import { orpc } from "@/lib/orpc/client"
+import { offeringClient } from "@/lib/orpc/client"
 
 export function filtersToListInput(filters: TableFilters) {
   const reason = filters.reason?.trim()
@@ -49,7 +49,7 @@ export function TableFilter() {
   const [dateTo, setDateTo] = useState(filters.dateTo ?? "")
 
   const offeringsQuery = useQuery(
-    orpc.offerings.getSelectOptions.queryOptions({ input: {} })
+    offeringClient.getSelectOptions.queryOptions({ input: {} })
   )
 
   const offerings = offeringsQuery.data ?? []

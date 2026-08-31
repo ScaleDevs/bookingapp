@@ -13,10 +13,10 @@ type PageProps = {
 }
 
 async function SchedulesServerWrapper({ offeringId }: { offeringId: string }) {
-  const { orpc, queryClient } = await getORPCQueryUtils()
+  const { offeringScheduleClient, queryClient } = await getORPCQueryUtils()
 
   await queryClient.prefetchQuery(
-    orpc.offeringSchedules.list.queryOptions({
+    offeringScheduleClient.list.queryOptions({
       input: { offeringId, page: 1, pageSize: 10, sortOrder: "asc" },
     })
   )
@@ -43,10 +43,10 @@ export default async function OfferingDetailsPage({ params }: PageProps) {
     notFound()
   }
 
-  const { orpc, queryClient } = await getORPCQueryUtils()
+  const { offeringClient, queryClient } = await getORPCQueryUtils()
 
   await queryClient.prefetchQuery(
-    orpc.offerings.getById.queryOptions({ input: { id: offeringId } })
+    offeringClient.getById.queryOptions({ input: { id: offeringId } })
   )
 
   return (
