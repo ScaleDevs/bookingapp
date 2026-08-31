@@ -1,27 +1,71 @@
-import { createORPCClient } from '@orpc/client';
-import { RPCLink } from '@orpc/client/fetch';
+import type { ContractClientFactory, RouterContract } from "@orpc/contract";
+import { createContractJsonifiedClientFactory } from "@orpc/openapi";
+import { createContractJsonifiedUtilsFactory } from "@orpc/tanstack-query";
+import { OpenAPILink } from "@orpc/openapi/fetch";
 import {
-  inferRPCMethodFromContractRouter,
-  type ContractRouterClient,
-  type InferContractRouterOutputs,
-} from '@orpc/contract';
-import { createTanstackQueryUtils } from '@orpc/tanstack-query';
+  blockedTimes,
+  bookings,
+  customers,
+  offeringSchedules,
+  offerings,
+  organizations,
+  system,
+} from "@bookingapp/api-contracts";
 
-import { contract, type ApiContract } from '@bookingapp/api-contracts';
-import { getBaseApiUrl } from '@/lib/constant';
+import { getBaseApiUrl } from "@/lib/constant";
+import type { ContractOutputs } from "./contract-types";
 
-const link = new RPCLink({
-  url: `${getBaseApiUrl()}/api/orpc`,
-  method: inferRPCMethodFromContractRouter(contract),
+const contractRef = {} as RouterContract;
+const apiOrigin = getBaseApiUrl();
+
+const link = new OpenAPILink(contractRef as never, {
+  ...(apiOrigin ? { origin: apiOrigin } : {}),
+  url: "/api",
   fetch(url, options) {
     return fetch(url, {
       ...options,
-      credentials: 'include',
+      credentials: "include",
     });
   },
 });
 
-export const orpcClient: ContractRouterClient<ApiContract> = createORPCClient(link);
-export const orpc = createTanstackQueryUtils(orpcClient);
+export const createClient = createContractJsonifiedClientFactory(link, {
+  contractRef,
+});
 
-export type APIOutputs = InferContractRouterOutputs<ApiContract>;
+export const createUtils = createContractJsonifiedUtilsFactory(
+  createClient as ContractClientFactory<object>,
+  {},
+);
+
+export const offeringClient = createUtils(offerings);
+export const offeringScheduleClient = createUtils(offeringSchedules);
+export const blockedTimeClient = createUtils(blockedTimes);
+export const customerClient = createUtils(customers);
+export const bookingClient = createUtils(bookings);
+export const organizationClient = createUtils(organizations);
+export const systemClient = createUtils(system);
+
+/**
+ * Nested client used by existing Next.js call sites. Domain clients above
+ * match the KardOps `createUtils(contract)` pattern and remain the source
+ * of truth.
+ */
+export const orpc = {
+  offerings: offeringClient,
+  offeringSchedules: offeringScheduleClient,
+  blockedTimes: blockedTimeClient,
+  customers: customerClient,
+  bookings: bookingClient,
+  organizations: organizationClient,
+  system: systemClient,
+};
+
+export type APIOutputs = {
+  offerings: ContractOutputs<typeof offerings>;
+  offeringSchedules: ContractOutputs<typeof offeringSchedules>;
+  blockedTimes: ContractOutputs<typeof blockedTimes>;
+  customers: ContractOutputs<typeof customers>;
+  bookings: ContractOutputs<typeof bookings>;
+  organizations: ContractOutputs<typeof organizations>;
+};

@@ -3,15 +3,67 @@ name: bookingapp-feature
 description: Build BookingApp features across the shared oRPC contract, API domain services, and Next.js web app.
 ---
 
-# BookingApp feature workflow
+# BookingApp feature work
 
-Use this skill when implementing a user-facing BookingApp feature.
+BookingApp is a pnpm + Turborepo monorepo. Features are vertical slices: **contract → API → web**. Copy a neighbor domain. Do not invent new stacks. Keep Next.js App Router, existing routes, components, and UX.
 
-1. Start at `packages/api-contracts/src/index.ts` and define Valibot input/output schemas and oRPC route metadata.
-2. Implement API behavior in `apps/api/src/router.ts` by delegating to domain services.
-3. Keep read-only database access in a domain `queries.ts`, focused writes and invariants in `atomic.ts`, and cross-domain workflows in `orchestration.ts`.
-4. Use the existing Better Auth session and active organization context for authorization.
-5. Consume the contract from the Next.js app with `@orpc/tanstack-query`; do not add a second API client or alter Next.js routing.
-6. Verify the shared contract, API, and web typechecks before changing unrelated UI.
+This skill is the implementation entry point. Read a specialized skill when the work hits that layer.
 
-BookingApp domains are offerings, offering schedules, blocked times, bookings, customers, and organizations. Preserve existing booking, availability, pricing, and authentication semantics.
+| Work | Skill |
+| --- | --- |
+| Schema, indexes, migrations, seeds | `bookingapp-database` |
+| Availability, pricing, booking invariants | `bookingapp-domain-modeling` |
+| Linear issue → plan → PR-ready summary | `bookingapp-linear-implementation` |
+| Reviewing a changeset before merge | `bookingapp-pr-review` |
+| SST stages, GitHub Actions, secrets, domains | `bookingapp-deployment` |
+
+## Stack (do not substitute)
+
+| Layer | Use | Do not use |
+| --- | --- | --- |
+| Contracts | Valibot + `@orpc/contract` in `packages/api-contracts` | Zod for API contracts |
+| API | Hono + oRPC OpenAPI in `apps/api` | tRPC, Express |
+| DB | Drizzle + PostgreSQL | Prisma |
+| Web | Next.js App Router + TanStack Query | Vite, TanStack Router |
+| Auth | Better Auth, cookie session, organization plugin | JWT in localStorage |
+| UI | Tailwind + shadcn in `apps/web` | KardOps Vite/feature folder layout |
+
+Package filters: `api` (backend), `web` (frontend).
+
+## Naming
+
+| Thing | Convention | Example |
+| --- | --- | --- |
+| Contract folder / REST path | kebab-case plural | `offering-schedules`, `/offering-schedules` |
+| Contract export | camelCase plural | `offeringSchedules` |
+| Manifest + route folder | camelCase singular | `offeringSchedule` → `apps/api/src/routes/offeringSchedule/` |
+| Service folder | kebab-case | `apps/api/src/services/offering-schedules/` |
+
+Tenant scope comes from `context.service.organizationId` (Better Auth active org). Never trust a client-supplied `organizationId`.
+
+## New-domain checklist
+
+```
+- [ ] Tables + relations (follow bookingapp-database)
+- [ ] Valibot schemas + oc contracts in packages/api-contracts/src/<kebab-plural>/
+- [ ] Export from packages/api-contracts/src/index.ts
+- [ ] Service: queries.ts, atomic.ts [, orchestration.ts]
+- [ ] Route: apps/api/src/routes/<camelName>/{index,router,lambda}.ts
+- [ ] Register: architecture/manifest.ts, routes/registry.ts, routes/openapi-router.ts
+- [ ] Web: consume via apps/web/lib/orpc/client.ts (`orpc.<domain>` or `createUtils`)
+```
+
+Infra Lambdas are derived from `DOMAIN_MANIFEST` — do not hand-edit SST routes. Route folder name **must** match the manifest key (`src/routes/${manifestKey}/lambda.handler`).
+
+## Commands
+
+```bash
+pnpm --filter api check-types
+pnpm --filter web check-types
+pnpm --filter @bookingapp/api-contracts check-types
+```
+
+## Additional resources
+
+- API, contracts, errors, and service files: [api.md](api.md)
+- Next.js oRPC client and call sites: [web.md](web.md)

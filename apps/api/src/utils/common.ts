@@ -33,11 +33,8 @@ export const extractErrorMessage = async (
       return undefined;
     }
 
-    // Check for a nested error structure first: error.data.message
-    if (
-      typeof body === 'object' && body[0].error && (body[0].error.message || body[0].error.data.message)
-    ) {
-      const message = String(body[0].error.message || body[0].error.data.message).trim();
+    if ('message' in body && typeof body.message === 'string') {
+      const message = body.message.trim();
       if (message.length > 0) {
         return message;
       }

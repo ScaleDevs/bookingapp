@@ -1,41 +1,65 @@
-import 'server-only';
+import "server-only";
 
-import { createORPCClient } from '@orpc/client';
-import { RPCLink } from '@orpc/client/fetch';
+import type { ContractClientFactory, RouterContract } from "@orpc/contract";
+import { createContractJsonifiedClientFactory } from "@orpc/openapi";
+import { createContractJsonifiedUtilsFactory } from "@orpc/tanstack-query";
+import { OpenAPILink } from "@orpc/openapi/fetch";
+import { cookies } from "next/headers";
+import { cache } from "react";
 import {
-  inferRPCMethodFromContractRouter,
-  type ContractRouterClient,
-} from '@orpc/contract';
-import { createTanstackQueryUtils } from '@orpc/tanstack-query';
-import { cookies } from 'next/headers';
-import { cache } from 'react';
+  blockedTimes,
+  bookings,
+  customers,
+  offeringSchedules,
+  offerings,
+  organizations,
+  system,
+} from "@bookingapp/api-contracts";
 
-import { contract, type ApiContract } from '@bookingapp/api-contracts';
-import { getBaseApiUrl } from '@/lib/constant';
-import { makeQueryClient } from './make-query-client';
+import { getBaseApiUrl } from "@/lib/constant";
+import { makeQueryClient } from "./make-query-client";
 
 export const getQueryClient = cache(makeQueryClient);
 
 export const getORPCServerClient = cache(async () => {
   const cookieStore = await cookies();
+  const contractRef = {} as RouterContract;
+  const apiOrigin = getBaseApiUrl();
 
-  const link = new RPCLink({
-    url: `${getBaseApiUrl()}/api/orpc`,
-    method: inferRPCMethodFromContractRouter(contract),
+  const link = new OpenAPILink(contractRef as never, {
+    ...(apiOrigin ? { origin: apiOrigin } : {}),
+    url: "/api",
     headers: () => ({
       cookie: cookieStore.toString(),
     }),
   });
 
-  return createORPCClient(link) as ContractRouterClient<ApiContract>;
+  const createClient = createContractJsonifiedClientFactory(link, {
+    contractRef,
+  });
+
+  const createUtils = createContractJsonifiedUtilsFactory(
+    createClient as ContractClientFactory<object>,
+    {},
+  );
+
+  return {
+    offerings: createUtils(offerings),
+    offeringSchedules: createUtils(offeringSchedules),
+    blockedTimes: createUtils(blockedTimes),
+    customers: createUtils(customers),
+    bookings: createUtils(bookings),
+    organizations: createUtils(organizations),
+    system: createUtils(system),
+  };
 });
 
 export const getORPCQueryUtils = cache(async () => {
   const queryClient = getQueryClient();
-  const orpcClient = await getORPCServerClient();
+  const orpc = await getORPCServerClient();
 
   return {
-    orpc: createTanstackQueryUtils(orpcClient),
+    orpc,
     queryClient,
   };
 });

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from "@tanstack/react-query";
 
-import { orpc } from './client';
+import { orpc } from "./client";
 
 export function useORPCUtils() {
   const queryClient = useQueryClient();

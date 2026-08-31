@@ -4,16 +4,16 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./schemas": "./src/schemas.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
-    "check-types": "tsc --noEmit"
+    "build": "tsc --build",
+    "build:types": "tsc --build --force",
+    "check-types": "tsc --build --force"
   },
   "dependencies": {
-    "@orpc/contract": "^1.15.0",
-    "@orpc/openapi": "^1.15.0",
-    "@orpc/valibot": "^1.15.0",
+    "@orpc/contract": "2.0.0-beta.18",
+    "@orpc/openapi": "2.0.0-beta.18",
     "valibot": "^1.4.2"
   }
 }

@@ -35,7 +35,7 @@ export async function AuthGuard({
 
   if (session.session.activeOrganizationId) {
     await queryClient.prefetchQuery(
-      orpc.auth.getOrganization.queryOptions({ input: {} })
+      orpc.organizations.get.queryOptions({ input: {} })
     )
   }
 

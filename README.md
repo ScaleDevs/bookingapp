@@ -9,6 +9,10 @@ bookingapp/
 ├── apps/
 │   ├── web/          # Next.js frontend (package name: `web`)
 │   └── api/          # Hono + oRPC backend (package name: `api`)
+│       └── src/
+│           ├── architecture/   # shared app, domain manifest, oRPC helpers
+│           ├── routes/         # one folder per domain (router + Lambda)
+│           └── services/       # domain queries / atomic / orchestration
 ├── packages/
 │   ├── api-contracts/       # Shared Valibot + oRPC contracts
 │   ├── eslint-config/       # Shared ESLint configs (@repo/eslint-config)
@@ -29,7 +33,7 @@ Location: `apps/web`
 | **Auth**         | better-auth                             |
 | **Deploy**       | SST (`sst.aws.Nextjs`) to AWS           |
 
-The frontend talks to the API through the shared `@bookingapp/api-contracts` package using an oRPC client.
+The frontend talks to the API through the shared `@bookingapp/api-contracts` package using an oRPC OpenAPI client (`/api/<domain>`).
 
 Local dev runs on port **5173**.
 

@@ -1,11 +1,17 @@
 {
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "build", ".turbo", "coverage", ".tsc-output"],
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true
-  },
-  "include": ["src/**/*.ts"]
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./.tsc-output",
+    "rootDir": "./src"
+  }
 }

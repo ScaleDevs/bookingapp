@@ -28,9 +28,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { authClient } from "@/lib/auth-client"
 import { orpc } from "@/lib/orpc/client"
-import { useAuthStore } from "@/hooks/auth/useAuthStore"
 
 const data = {
   user: {
@@ -90,7 +88,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: organization } = useQuery(
-    orpc.auth.getOrganization.queryOptions({ input: {} })
+    orpc.organizations.get.queryOptions({ input: {} })
   )
 
   return (
